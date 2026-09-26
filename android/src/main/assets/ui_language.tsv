@@ -681,3 +681,13 @@ Zapret обнаружен; все контрольные узлы YouTube и Dis
 События во время скана\tEvents during scan
 Не удалось создать журнал\tCould not create log
 . Откройте приложение для установки.\t. Open the app to install.
+Недоступно через публичный Android API для обычного приложения\tUnavailable through Android's public API for a regular app
+Замеров:\tMeasurements:
+Последний ответ:\tLast response:
+Доступны при текущих ограничениях\tAvailable under current restrictions
+Некорректная версия GitHub Release\tInvalid GitHub Release version
+APK не соответствует версии релиза\tAPK does not match the release version
+GitHub Release не содержит SHA-256 APK\tGitHub Release does not provide an APK SHA-256
+Недопустимый APK GitHub Release\tInvalid GitHub Release APK
+HTTP-ответ через TLS; сертификат сервера не проверялся. Ответ подтверждён, подлинность сервера — нет.\tHTTP response over TLS; server certificate not verified. This confirms a response, not server identity.
+Сертификат сервера в проверке доступности не проверяется.\tThe service reachability test does not verify the server certificate.

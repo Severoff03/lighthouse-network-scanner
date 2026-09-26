@@ -38,9 +38,10 @@ final class UiLanguage {
     }
     static void apply(View view){
         if(Boolean.TRUE.equals(view.getTag()))return;
+        CharSequence description=view.getContentDescription();
+        if(description!=null&&!description.toString().equals(text(description.toString())))view.setContentDescription(text(description.toString()));
         if(view instanceof EditText){EditText input=(EditText)view;CharSequence hint=input.getHint();if(hint!=null)input.setHint(text(hint.toString()));return;}
-        if(view instanceof TextView){TextView label=(TextView)view;String original=label.getText().toString(),translated=text(original);if(!original.equals(translated))label.setText(translated);
-            CharSequence description=label.getContentDescription();if(description!=null&&!description.toString().equals(text(description.toString())))label.setContentDescription(text(description.toString()));}
+        if(view instanceof TextView){TextView label=(TextView)view;String original=label.getText().toString(),translated=text(original);if(!original.equals(translated))label.setText(translated);}
         if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++)apply(group.getChildAt(i));}
     }
 }

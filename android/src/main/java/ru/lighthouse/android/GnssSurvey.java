@@ -21,7 +21,7 @@ final class GnssSurvey {
             frequency=s.hasCarrierFrequencyHz(i)?s.getCarrierFrequencyHz(i)/1e6:Double.NaN;
             baseband=Build.VERSION.SDK_INT>=30&&s.hasBasebandCn0DbHz(i)?s.getBasebandCn0DbHz(i):Double.NaN;
         }
-        String id(){return constellation+":"+svid+":"+frequency;}
+        String id(){return constellation+":"+svid;}
         String title(){return constellationName(constellation)+" "+svid;}
     }
     private final Context context;

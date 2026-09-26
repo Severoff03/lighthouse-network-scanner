@@ -415,6 +415,8 @@ final class DesktopDashboard extends JPanel {
             .append("  ·  ").append(r.target.probeKind == ServiceTarget.ProbeKind.DNS ? "DNS-запрос" : "TCP-соединение")
             .append(": ").append(ms(r.tcpMs));
         if (r.error != null && !r.error.isBlank()) text.append("\nПодробности: ").append(r.error);
+        if (r.target.probeKind == ServiceTarget.ProbeKind.HTTPS)
+            text.append("\nСертификат сервера не проверяется: HTTP-ответ подтверждает доступность адреса, но не подлинность сервера.");
         if (!r.samples.isEmpty()) {
             for (int i = 0; i < r.samples.size(); i++) {
                 ProbeResult sample = r.samples.get(i);

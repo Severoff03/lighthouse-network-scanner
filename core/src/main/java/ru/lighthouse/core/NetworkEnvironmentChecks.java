@@ -1,14 +1,9 @@
 package ru.lighthouse.core;
 
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.security.cert.X509Certificate;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,9 +32,6 @@ final class NetworkEnvironmentChecks {
         add.accept(tcpSeries("tcp_ozon", "Стабильность Ozon", "ozon.ru", 443));
         add.accept(tcpSeries("tcp_google", "Стабильность Google", "www.google.com", 443));
         add.accept(tcpSeries("tcp_cloudflare", "Стабильность Cloudflare", "1.1.1.1", 443));
-        add.accept(tls("tls_ozon", "TLS Ozon", "ozon.ru"));
-        add.accept(tls("tls_google", "TLS Google", "www.google.com"));
-        add.accept(tls("tls_yandex", "TLS Яндекс", "ya.ru"));
         add.accept(ntp());
         if (System.getProperty("os.name", "").toLowerCase().contains("win")) {
             add.accept(trace("trace_ozon", "Маршрут до Ozon", "ozon.ru"));
@@ -120,34 +112,6 @@ final class NetworkEnvironmentChecks {
             "attempts", String.valueOf(attempts), "successful", String.valueOf(samples.size()),
             "lossPercent", String.valueOf(lost * 100 / attempts), "minMs", String.valueOf(min),
             "avgMs", String.valueOf(average), "maxMs", String.valueOf(max), "jitterMs", String.valueOf(jitter));
-    }
-
-    private NetworkCheckResult tls(String id, String name, String host) {
-        try {
-            long started = System.nanoTime();
-            try (Socket transport = new Socket()) {
-                transport.connect(new InetSocketAddress(NetworkDeadline.resolve(host, timeoutMs)[0], 443), timeoutMs);
-                try (SSLSocket socket = (SSLSocket) ((SSLSocketFactory) SSLSocketFactory.getDefault())
-                    .createSocket(transport, host, 443, true)) {
-                socket.setSoTimeout(timeoutMs);
-                javax.net.ssl.SSLParameters parameters = socket.getSSLParameters();
-                parameters.setEndpointIdentificationAlgorithm("HTTPS");
-                socket.setSSLParameters(parameters);
-                socket.startHandshake();
-                long ms = elapsed(started);
-                X509Certificate certificate = (X509Certificate) socket.getSession().getPeerCertificates()[0];
-                long days = ChronoUnit.DAYS.between(Instant.now(), certificate.getNotAfter().toInstant());
-                NetworkCheckResult.Status status = days < 7 ? NetworkCheckResult.Status.WARNING : NetworkCheckResult.Status.OK;
-                return result(id, name, "TLS", status,
-                    "Защищённое соединение установлено за " + ms + " мс. Сертификат действует ещё " + days + " дн.",
-                    "handshakeMs", String.valueOf(ms), "protocol", socket.getSession().getProtocol(),
-                    "cipher", socket.getSession().getCipherSuite(), "certificateDaysLeft", String.valueOf(days));
-                }
-            }
-        } catch (Exception error) {
-            return result(id, name, "TLS", NetworkCheckResult.Status.FAILED,
-                "Защищённое соединение не установлено.", "error", error.getClass().getSimpleName());
-        }
     }
 
     private NetworkCheckResult ntp() {

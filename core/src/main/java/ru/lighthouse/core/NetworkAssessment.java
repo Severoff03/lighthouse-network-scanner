@@ -118,7 +118,7 @@ public final class NetworkAssessment {
         if (result.target.probeKind == ServiceTarget.ProbeKind.HTTPS) {
             int successful = successfulWebSamples(result);
             if (successful >= attempts / 2 + 1) return ProbeResult.Status.AVAILABLE;
-            if (successful > 0 || hasWebResponse(result)) return ProbeResult.Status.DEGRADED;
+            if (successful > 0 || hasWebResponse(result) || hasTransportResponse(result)) return ProbeResult.Status.DEGRADED;
             return ProbeResult.Status.UNAVAILABLE;
         }
         int successful = 0;
@@ -144,6 +144,12 @@ public final class NetworkAssessment {
         return false;
     }
 
+    private static boolean hasTransportResponse(ProbeResult result) {
+        if (result.tcpMs >= 0 || result.pingMs >= 0) return true;
+        for (ProbeResult sample : result.samples) if (sample.tcpMs >= 0 || sample.pingMs >= 0) return true;
+        return false;
+    }
+
     public static boolean hasExternalResponse(List<NetworkCheckResult> checks, String publicIp) {
         if (publicIp != null && !publicIp.isEmpty() && !"unavailable".equals(publicIp) && !"unknown".equals(publicIp)) return true;
         for (NetworkCheckResult check : checks) {
@@ -151,9 +157,8 @@ public final class NetworkAssessment {
                 try { if (Integer.parseInt(check.metrics.get("successful")) > 0) return true; }
                 catch (NumberFormatException ignored) { }
             }
-            if (check.id.startsWith("tls_") && check.metrics.containsKey("handshakeMs")) return true;
             if (check.status == NetworkCheckResult.Status.OK && ("ipv6".equals(check.id)
-                || check.id.startsWith("tls_version_") || check.id.startsWith("address_")
+                || check.id.startsWith("address_")
                 || check.id.startsWith("doh_") || check.id.startsWith("dot_") || check.id.startsWith("icmp_series_"))) return true;
         }
         return false;

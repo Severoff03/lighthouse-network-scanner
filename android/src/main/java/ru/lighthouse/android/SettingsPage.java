@@ -59,9 +59,10 @@ final class SettingsPage extends ScrollView {
         super(context);
         controlsContext = new ContextThemeWrapper(context, dark
             ? android.R.style.Theme_Material_NoActionBar : android.R.style.Theme_Material_Light_NoActionBar);
-        surface = dark ? Color.rgb(22, 25, 34) : Color.WHITE;
-        primary = dark ? Color.WHITE : Color.rgb(22, 30, 46);
-        secondary = dark ? Color.rgb(169, 176, 194) : Color.rgb(91, 102, 126);
+        boolean terminal=TerminalTheme.enabled(context);
+        surface = terminal ? TerminalTheme.SURFACE : dark ? Color.rgb(22, 25, 34) : Color.WHITE;
+        primary = terminal ? TerminalTheme.TEXT : dark ? Color.WHITE : Color.rgb(22, 30, 46);
+        secondary = terminal ? TerminalTheme.MUTED : dark ? Color.rgb(169, 176, 194) : Color.rgb(91, 102, 126);
         setFillViewport(true);
         LinearLayout root = column(); root.setPadding(dp(18), dp(12), dp(18), dp(18));
         root.addView(text("Настройки", 26, primary, true));
@@ -73,8 +74,8 @@ final class SettingsPage extends ScrollView {
 
         LinearLayout appearance = card(root, "Оформление");
         appearance.addView(text("Тема приложения", 13, secondary, false));
-        theme = spinner(new String[]{"Чёрная", "Светлая", "Системная"}, "Тема приложения");
-        theme.setSelection("light".equals(savedTheme) ? 1 : "system".equals(savedTheme) ? 2 : 0);
+        theme = spinner(new String[]{"Чёрная", "Светлая", "Системная", "Watch Dogs // Terminal"}, "Тема приложения");
+        theme.setSelection("light".equals(savedTheme) ? 1 : "system".equals(savedTheme) ? 2 : "watchdogs".equals(savedTheme) ? 3 : 0);
         appearance.addView(theme, control());
         appearance.addView(text("Системная тема следует оформлению устройства.", 12, secondary, false));
         appearance.addView(text("Language / Язык",13,secondary,false));
@@ -97,7 +98,7 @@ final class SettingsPage extends ScrollView {
         depth.setSelection(profile == ScanProfile.DEEP ? 0 : 1); scanning.addView(depth, control());
         scanning.addView(text("Глубокая проверка занимает до 5 минут. Повторные замеры помогают оценить стабильность сети.", 13, secondary, false));
         radio = new CheckBox(controlsContext); radio.setText("Радиодиагностика"); radio.setTextSize(15); radio.setTextColor(primary);
-        radio.setButtonTintList(new ColorStateList(new int[][]{new int[]{android.R.attr.state_checked}, new int[0]}, new int[]{ACCENT, secondary}));
+        radio.setButtonTintList(new ColorStateList(new int[][]{new int[]{android.R.attr.state_checked}, new int[0]}, new int[]{terminal?TerminalTheme.ACCENT:ACCENT, secondary}));
         radio.setChecked(radioEnabled); scanning.addView(radio, control());
         scanning.addView(text("Cell ID, Wi-Fi, Bluetooth, GPS и координаты по GPS/сотовой сети в глубоком скане. Эти данные раскрывают местоположение и попадут только в локальный лог. Текущие измерения доступны во вкладке Radio.", 13, secondary, false));
         LinearLayout permissionsSection=card(root,"Permissions");
@@ -158,13 +159,13 @@ final class SettingsPage extends ScrollView {
         addView(root);
     }
 
-    String selectedTheme() { return theme.getSelectedItemPosition() == 1 ? "light" : theme.getSelectedItemPosition() == 2 ? "system" : "dark"; }
+    String selectedTheme() { return theme.getSelectedItemPosition() == 1 ? "light" : theme.getSelectedItemPosition() == 2 ? "system" : theme.getSelectedItemPosition() == 3 ? "watchdogs" : "dark"; }
     String selectedLanguage(){return language.getSelectedItemPosition()==1?"ru":"en";}
     ScanProfile selectedProfile() { return depth.getSelectedItemPosition() == 0 ? ScanProfile.DEEP : ScanProfile.QUICK; }
     boolean selectedRadio() { return radio.isChecked(); }
 
     void restoreDraft(String value, ScanProfile profile, boolean collectRadio) {
-        theme.setSelection("light".equals(value) ? 1 : "system".equals(value) ? 2 : 0);
+        theme.setSelection("light".equals(value) ? 1 : "system".equals(value) ? 2 : "watchdogs".equals(value) ? 3 : 0);
         depth.setSelection(profile == ScanProfile.DEEP ? 0 : 1); radio.setChecked(collectRadio);
     }
 
@@ -291,10 +292,17 @@ final class SettingsPage extends ScrollView {
     private Spinner spinner(String[] values, String description) {
         Spinner value = new Spinner(controlsContext, Spinner.MODE_DROPDOWN);
         String[] displayed=new String[values.length];for(int i=0;i<values.length;i++)displayed[i]=UiLanguage.text(values[i]);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(controlsContext, android.R.layout.simple_spinner_item, displayed);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(controlsContext, android.R.layout.simple_spinner_item, displayed) {
+            @Override public View getView(int position, View convertView, android.view.ViewGroup parent) {
+                View row=super.getView(position,convertView,parent);if(TerminalTheme.enabled(getContext()))TerminalTheme.apply(row);return row;
+            }
+            @Override public View getDropDownView(int position, View convertView, android.view.ViewGroup parent) {
+                View row=super.getDropDownView(position,convertView,parent);if(TerminalTheme.enabled(getContext()))TerminalTheme.apply(row);return row;
+            }
+        };
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         value.setAdapter(adapter); value.setContentDescription(description); value.setMinimumHeight(dp(48));
-        value.setBackgroundTintList(ColorStateList.valueOf(secondary)); return value;
+        value.setBackgroundTintList(ColorStateList.valueOf(secondary));if(TerminalTheme.enabled(getContext()))value.setPopupBackgroundDrawable(TerminalTheme.panel(getContext(),surface));return value;
     }
 
     private LinearLayout column() { LinearLayout value = new LinearLayout(getContext()); value.setOrientation(LinearLayout.VERTICAL); return value; }
@@ -310,18 +318,19 @@ final class SettingsPage extends ScrollView {
         value.addView(heading); value.addView(body); root.addView(value, spaced()); return body;
     }
     private TextView text(String value, int sp, int color, boolean bold) {
-        TextView view = new TextView(getContext()); view.setText(value); view.setTextSize(sp); view.setTextColor(color);
+        TextView view = new TextView(getContext()); view.setText(UiLanguage.text(value)); view.setTextSize(sp); view.setTextColor(color);
         view.setTypeface(Typeface.create("sans", bold ? Typeface.BOLD : Typeface.NORMAL)); view.setLineSpacing(0, 1.1f); return view;
     }
     private Button button(String label, boolean primaryAction) {
-        Button value = new Button(controlsContext); value.setText(label); value.setAllCaps(false); value.setTextSize(14);
+        Button value = new Button(controlsContext); value.setText(UiLanguage.text(label)); value.setAllCaps(false); value.setTextSize(14);
         value.setTypeface(null, Typeface.BOLD); value.setMinHeight(dp(48)); value.setMinimumHeight(dp(48));
-        value.setPadding(dp(12), dp(10), dp(12), dp(10)); value.setTextColor(primaryAction ? Color.rgb(5, 31, 38) : primary);
-        GradientDrawable shape = round(primaryAction ? ACCENT : surface);
+        value.setPadding(dp(12), dp(10), dp(12), dp(10)); value.setTextColor(primaryAction ? (TerminalTheme.enabled(getContext())?TerminalTheme.BACKGROUND:Color.rgb(5, 31, 38)) : primary);
+        GradientDrawable shape = round(primaryAction ? (TerminalTheme.enabled(getContext())?TerminalTheme.ACCENT:ACCENT) : surface);
         if (!primaryAction) shape.setStroke(dp(1), secondary);
         value.setBackground(shape); return value;
     }
     private GradientDrawable round(int color) {
+        if(TerminalTheme.enabled(getContext()))return TerminalTheme.panel(getContext(),color);
         GradientDrawable shape = new GradientDrawable(); shape.setColor(color); shape.setCornerRadius(dp(4)); return shape;
     }
     private LinearLayout.LayoutParams spaced() {

@@ -23,17 +23,17 @@ final class IpScannerPage extends LinearLayout {
     private final EditText manual;private final TextView progress;private final LinearLayout results;
     private final Button action;private final Handler main=new Handler(Looper.getMainLooper());
     private ExecutorService workers;private volatile boolean cancelled;
-    IpScannerPage(Activity activity,boolean dark,Runnable back){super(activity);this.activity=activity;ink=dark?Color.WHITE:0xff16202e;surface=dark?0xff161922:Color.WHITE;muted=dark?0xffa9b0c2:0xff5b667e;setOrientation(VERTICAL);setPadding(dp(16),dp(14),dp(16),dp(8));
+    IpScannerPage(Activity activity,boolean dark,Runnable back){super(activity);this.activity=activity;boolean terminal=TerminalTheme.enabled(activity);ink=terminal?TerminalTheme.TEXT:dark?Color.WHITE:0xff16202e;surface=terminal?TerminalTheme.SURFACE:dark?0xff161922:Color.WHITE;muted=terminal?TerminalTheme.MUTED:dark?0xffa9b0c2:0xff5b667e;setOrientation(VERTICAL);setPadding(dp(16),dp(14),dp(16),dp(8));
         Button backButton=button("← Tools",back);addView(backButton,new LayoutParams(-1,dp(46)));
         addView(text("IP scanner",23,ink),new LayoutParams(-1,dp(48)));
         addView(text("Active Wi-Fi / Ethernet: scan the local /24 around each address. Add a private CIDR (/22–/32) for another subnet. Only confirmed open TCP ports are listed.",12,muted));
-        manual=new EditText(activity);manual.setSingleLine(true);manual.setTextColor(ink);manual.setHintTextColor(muted);manual.setHint("Optional CIDR");addView(manual,new LayoutParams(-1,dp(50)));
+        manual=new EditText(activity);manual.setSingleLine(true);manual.setTextColor(ink);manual.setHintTextColor(muted);manual.setHint("IPv4 CIDR");manual.setText("192.168.0.0/24");addView(manual,new LayoutParams(-1,dp(50)));
         action=button("Scan local networks",this::toggle);addView(action,new LayoutParams(-1,dp(50)));
         progress=text("Ready",13,muted);addView(progress);
         ScrollView scroll=new ScrollView(activity);results=new LinearLayout(activity);results.setOrientation(VERTICAL);scroll.addView(results);addView(scroll,new LayoutParams(-1,0,1));
     }
-    private Button button(String label,Runnable click){Button b=new Button(activity);b.setText(label);b.setAllCaps(false);b.setTextColor(ink);b.setOnClickListener(v->click.run());return b;}
-    private TextView text(String value,int sp,int color){TextView t=new TextView(activity);t.setText(value);t.setTextSize(sp);t.setTextColor(color);t.setPadding(0,dp(5),0,dp(5));return t;}
+    private Button button(String label,Runnable click){Button b=new Button(activity);b.setText(label);b.setAllCaps(false);b.setTextColor(ink);if(TerminalTheme.enabled(activity)){b.setTypeface(Typeface.MONOSPACE);b.setBackground(TerminalTheme.panel(activity,surface));}b.setOnClickListener(v->click.run());return b;}
+    private TextView text(String value,int sp,int color){TextView t=new TextView(activity);t.setText(value);t.setTextSize(sp);t.setTextColor(color);t.setPadding(0,dp(5),0,dp(5));if(TerminalTheme.enabled(activity))t.setTypeface(Typeface.MONOSPACE);return t;}
     private int dp(int px){return Math.round(px*getResources().getDisplayMetrics().density);}
     private void toggle(){if(workers!=null){cancelled=true;workers.shutdownNow();workers=null;action.setText("Scan local networks");progress.setText("Cancelled");return;}
         ConnectivityManager manager=activity.getSystemService(ConnectivityManager.class);if(manager==null){progress.setText("Network service unavailable");return;}
@@ -66,7 +66,7 @@ final class IpScannerPage extends LinearLayout {
             }
             int finished=done.incrementAndGet();if(!open.isEmpty())found.incrementAndGet();
             main.post(()->{if(cancelled)return;if(!open.isEmpty()){
-                LinearLayout row=new LinearLayout(activity);row.setOrientation(VERTICAL);row.setPadding(dp(12),dp(10),dp(12),dp(10));GradientDrawable bg=new GradientDrawable();bg.setColor(surface);bg.setCornerRadius(dp(10));row.setBackground(bg);
+                LinearLayout row=new LinearLayout(activity);row.setOrientation(VERTICAL);row.setPadding(dp(12),dp(10),dp(12),dp(10));GradientDrawable bg=new GradientDrawable();bg.setColor(surface);bg.setCornerRadius(TerminalTheme.enabled(activity)?0:dp(10));row.setBackground(bg);
                 TextView title=text(host,17,ink);title.setTypeface(null,Typeface.BOLD);row.addView(title);row.addView(text("Open TCP: "+open.toString(),12,muted));results.addView(row);
             }progress.setText(finished+" / "+total+" · "+found.get()+" confirmed");if(finished==total){action.setText("Scan local networks");pool.shutdown();if(workers==pool)workers=null;}});
         });

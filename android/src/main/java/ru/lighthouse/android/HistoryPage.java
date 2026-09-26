@@ -32,9 +32,10 @@ final class HistoryPage extends ScrollView {
 
     HistoryPage(Context context, boolean dark, Listener listener) {
         super(context); this.listener = listener;
-        surface = dark ? Color.rgb(22, 25, 34) : Color.WHITE;
-        primary = dark ? Color.WHITE : Color.rgb(22, 30, 46);
-        secondary = dark ? Color.rgb(169, 176, 194) : Color.rgb(91, 102, 126);
+        boolean terminal=TerminalTheme.enabled(context);
+        surface = terminal ? TerminalTheme.SURFACE : dark ? Color.rgb(22, 25, 34) : Color.WHITE;
+        primary = terminal ? TerminalTheme.TEXT : dark ? Color.WHITE : Color.rgb(22, 30, 46);
+        secondary = terminal ? TerminalTheme.MUTED : dark ? Color.rgb(169, 176, 194) : Color.rgb(91, 102, 126);
         setFillViewport(true);
         LinearLayout root = column(); root.setPadding(dp(18), dp(12), dp(18), dp(18));
         root.addView(text("История", 26, primary, true));
@@ -101,9 +102,9 @@ final class HistoryPage extends ScrollView {
     private TextView empty(String value) { TextView view = text(value, 13, secondary, false); view.setGravity(Gravity.CENTER); view.setPadding(dp(14), dp(18), dp(14), dp(18)); view.setBackground(round(surface)); return view; }
     private LinearLayout card() { LinearLayout value = column(); value.setPadding(dp(15), dp(14), dp(15), dp(14)); value.setBackground(round(surface)); return value; }
     private LinearLayout column() { LinearLayout value = new LinearLayout(getContext()); value.setOrientation(LinearLayout.VERTICAL); return value; }
-    private TextView text(String value, int sp, int color, boolean bold) { TextView view = new TextView(getContext()); view.setText(value); view.setTextSize(sp); view.setTextColor(color); view.setTypeface(Typeface.create("sans", bold ? Typeface.BOLD : Typeface.NORMAL)); view.setLineSpacing(0, 1.1f); return view; }
-    private Button button(String label) { Button value = new Button(getContext()); value.setText(label); value.setAllCaps(false); value.setTextSize(14); value.setTypeface(null, Typeface.BOLD); value.setTextColor(primary); GradientDrawable shape = round(surface); shape.setStroke(dp(1), ACCENT); value.setBackground(shape); value.setMinHeight(dp(46)); return value; }
-    private GradientDrawable round(int color) { GradientDrawable shape = new GradientDrawable(); shape.setColor(color); shape.setCornerRadius(dp(17)); return shape; }
+    private TextView text(String value, int sp, int color, boolean bold) { TextView view = new TextView(getContext()); view.setText(UiLanguage.text(value)); view.setTextSize(sp); view.setTextColor(color); view.setTypeface(Typeface.create("sans", bold ? Typeface.BOLD : Typeface.NORMAL)); view.setLineSpacing(0, 1.1f); return view; }
+    private Button button(String label) { Button value = new Button(getContext()); value.setText(UiLanguage.text(label)); value.setAllCaps(false); value.setTextSize(14); value.setTypeface(null, Typeface.BOLD); value.setTextColor(primary); GradientDrawable shape = round(surface); shape.setStroke(dp(1), ACCENT); value.setBackground(shape); value.setMinHeight(dp(46)); return value; }
+    private GradientDrawable round(int color) { if(TerminalTheme.enabled(getContext()))return TerminalTheme.panel(getContext(),color);GradientDrawable shape = new GradientDrawable(); shape.setColor(color); shape.setCornerRadius(dp(17)); return shape; }
     private LinearLayout.LayoutParams spaced() { LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, -2); p.bottomMargin = dp(14); return p; }
     private LinearLayout.LayoutParams control() { LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, -2); p.topMargin = dp(8); return p; }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

@@ -48,11 +48,11 @@ public final class NetworkAssessmentTest {
             "a majority of successful HTTPS samples proves availability");
         ProbeResult noHttps = new ProbeResult(allowlist.get(0).target, ProbeResult.Status.DEGRADED,
             5, 80, 40, -1, -1, "192.0.2.1", "TLS timeout");
-        check(NetworkAssessment.observedStatus(noHttps) == ProbeResult.Status.UNAVAILABLE,
-            "DNS ping and TCP without any HTTPS response mean the web service is unavailable");
+        check(NetworkAssessment.observedStatus(noHttps) == ProbeResult.Status.DEGRADED,
+            "TCP response without HTTPS status means limited evidence, not no response");
         String unavailableJson = new String(JsonLog.encode(report(List.of(noHttps), NetworkAssessment.legacy(ScanReport.Level.INCOMPLETE), false)), StandardCharsets.UTF_8);
-        check(unavailableJson.contains("\"status\":\"UNAVAILABLE\",\"rawStatus\":\"DEGRADED\""),
-            "JSON distinguishes assessed unavailability from the low-level transport aggregate");
+        check(unavailableJson.contains("\"status\":\"DEGRADED\",\"rawStatus\":\"DEGRADED\""),
+            "JSON preserves limited transport evidence");
         ProbeResult highPing = new ProbeResult(allowlist.get(1).target, ProbeResult.Status.AVAILABLE, 800, 2400, 1700, 2600, 200, "192.0.2.1", null);
         check(NetworkAssessment.accessible(highPing), "high mobile latency alone does not change availability");
 

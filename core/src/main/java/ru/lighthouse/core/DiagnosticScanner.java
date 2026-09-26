@@ -1,8 +1,6 @@
 package ru.lighthouse.core;
 
-import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -190,25 +188,23 @@ public final class DiagnosticScanner {
 
                     socket.setSoTimeout(timeoutMs);
                     started = System.nanoTime();
-                    try (SSLSocket tls = (SSLSocket) ((SSLSocketFactory) SSLSocketFactory.getDefault())
+                    try (SSLSocket tls = (SSLSocket) DiagnosticTls.unverifiedFactory()
                         .createSocket(socket, target.host, target.port, true)) {
-                        SSLParameters parameters = tls.getSSLParameters();
-                        parameters.setEndpointIdentificationAlgorithm("HTTPS");
-                        tls.setSSLParameters(parameters); tls.setSoTimeout(timeoutMs); tls.startHandshake();
+                        tls.setSoTimeout(timeoutMs); tls.startHandshake();
                         code = requestStatus(tls, target);
                     }
                     httpsMs = elapsed(started);
                 }
                 ProbeResult.Status status = code >= 200 && code < 400
                     ? ProbeResult.Status.AVAILABLE : ProbeResult.Status.DEGRADED;
-                return new ProbeResult(target, status, dnsMs, pingMs, tcpMs, httpsMs, code, ip, null);
+                return new ProbeResult(target, status, dnsMs, pingMs, tcpMs, httpsMs, code, ip, null)
+                    .withDetail("HTTP response over TLS; server certificate not verified. This confirms a response, not server identity.");
             } catch (CancellationException cancelled) {
                 throw cancelled;
             } catch (Exception e) {
                 error = e.getClass().getSimpleName() + ": " + safeMessage(e.getMessage());
-                ProbeResult.Status status = target.probeKind == ServiceTarget.ProbeKind.HTTPS
-                    ? ProbeResult.Status.UNAVAILABLE
-                    : tcpMs >= 0 || pingMs >= 0 ? ProbeResult.Status.DEGRADED : ProbeResult.Status.UNAVAILABLE;
+                ProbeResult.Status status = tcpMs >= 0 || pingMs >= 0
+                    ? ProbeResult.Status.DEGRADED : ProbeResult.Status.UNAVAILABLE;
                 return new ProbeResult(target, status, dnsMs, pingMs, tcpMs, httpsMs, code, ip, error);
             }
         }
@@ -223,7 +219,7 @@ public final class DiagnosticScanner {
         return addresses[(pass - 1) % addresses.length];
     }
 
-    /** Small browser-like request through the exact resolved address, preserving SNI and certificate checks. */
+    /** Small credential-free request through the exact resolved address, preserving SNI. */
     private static int requestStatus(SSLSocket socket, ServiceTarget target) throws Exception {
         String path = target.path == null || target.path.isEmpty() ? "/" : target.path;
         String request = "GET " + path + " HTTP/1.1\r\nHost: " + target.host

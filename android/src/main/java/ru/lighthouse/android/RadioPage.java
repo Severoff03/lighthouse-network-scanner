@@ -13,7 +13,7 @@ import java.util.*;
 
 final class RadioPage extends LinearLayout {
     private final Activity activity;
-    private final int foreground,muted,surface,edge;
+    private final int foreground,muted,surface,edge;private final boolean terminal;
     private static final int GREEN=0xff23b269;
     private final LinearLayout rows,bandBar,sortBar,radioControls,landing;
     private final HorizontalScrollView protocolScroll;
@@ -37,7 +37,7 @@ final class RadioPage extends LinearLayout {
     private final Runnable tick=new Runnable(){public void run(){syncNavigation();if(isShown())render();ui.postDelayed(this,2000);}};
 
     RadioPage(Activity context,boolean dark,Runnable permissions){
-        super(context);activity=context;foreground=dark?0xffe4e8ed:0xff192028;muted=dark?0xff97a2ae:0xff546370;surface=dark?0xff161922:Color.WHITE;edge=dark?0xff35404d:0xffd2dae2;
+        super(context);activity=context;terminal=TerminalTheme.enabled(context);foreground=terminal?TerminalTheme.TEXT:dark?0xffe4e8ed:0xff192028;muted=terminal?TerminalTheme.MUTED:dark?0xff97a2ae:0xff546370;surface=terminal?TerminalTheme.SURFACE:dark?0xff161922:Color.WHITE;edge=terminal?TerminalTheme.BORDER:dark?0xff35404d:0xffd2dae2;
         setOrientation(VERTICAL);setPadding(dp(12),dp(8),dp(12),0);
         LinearLayout bar=new LinearLayout(context);
         for(String name:new String[]{"WiFi","Bluetooth","Cell","Навигация"}){
@@ -46,8 +46,9 @@ final class RadioPage extends LinearLayout {
         }addView(bar);
         landing=new LinearLayout(context);landing.setOrientation(VERTICAL);addView(landing,new LayoutParams(-1,0,1));
         for(String[] pair:new String[][]{{"WiFi","Wi-Fi"},{"Bluetooth","Bluetooth"},{"Cell","Cell"},{"Навигация","Navigation"}}){
-            Button tile=button(pair[1]+"   ›",()->selectMode(pair[0]));tile.setTextSize(19);tile.setGravity(Gravity.CENTER_VERTICAL);
-            GradientDrawable tileBg=new GradientDrawable();tileBg.setColor(surface);tileBg.setCornerRadius(dp(14));tileBg.setStroke(dp(1),edge);tile.setBackground(tileBg);
+            String tileName=pair[0].equals("Навигация")&&UiLanguage.isRussian()?"Навигация":pair[1];
+            Button tile=button(terminal?"[ "+tileName+" ]":tileName,()->selectMode(pair[0]));tile.setTextSize(19);tile.setGravity(Gravity.CENTER);
+            GradientDrawable tileBg=new GradientDrawable();tileBg.setColor(surface);tileBg.setCornerRadius(terminal?0:dp(14));tileBg.setStroke(dp(1),edge);tile.setBackground(tileBg);
             LayoutParams tileSize=new LayoutParams(-1,0,1);tileSize.bottomMargin=dp(10);landing.addView(tile,tileSize);
         }
         radioControls=new LinearLayout(context);radioControls.setOrientation(VERTICAL);addView(radioControls);
@@ -84,7 +85,7 @@ final class RadioPage extends LinearLayout {
         search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int a,int c,int f){}public void onTextChanged(CharSequence s,int a,int b,int c){detailId=null;overlaps=Collections.emptyList();render();}public void afterTextChanged(Editable s){}});
         render();
     }
-    private Button button(String title,Runnable click){Button b=new Button(activity);b.setText(title);b.setAllCaps(false);b.setTextColor(foreground);b.setTextSize(12);b.setMinWidth(0);b.setMinimumWidth(0);b.setPadding(dp(5),0,dp(5),0);b.setOnClickListener(v->click.run());return b;}
+    private Button button(String title,Runnable click){Button b=new Button(activity);b.setText(UiLanguage.text(title));b.setAllCaps(false);b.setTextColor(foreground);b.setTextSize(12);b.setMinWidth(0);b.setMinimumWidth(0);b.setPadding(dp(5),0,dp(5),0);if(terminal){b.setTypeface(Typeface.MONOSPACE);b.setBackground(TerminalTheme.panel(activity,surface));}b.setOnClickListener(v->click.run());return b;}
     void showLanding(){selected="";detailId=null;list=false;showingHidden=false;syncNavigation();render();}
     private void selectMode(String name){selected=name;list=false;sortFrequency=false;showingHidden=false;detailId=null;wifiProtocolFilter="All";overlaps=Collections.emptyList();search.setText("");scroll.scrollTo(0,0);syncNavigation();render();}
     @Override protected void onAttachedToWindow(){super.onAttachedToWindow();ui.post(tick);}
@@ -108,6 +109,14 @@ final class RadioPage extends LinearLayout {
         out.sort(RadioPresentation.order(sortFrequency,ascending));return out;
     }
     private void render(){
+        try { renderContent(); }
+        catch (RuntimeException failure) {
+            CrashDiagnostics.record("Radio / " + selected, failure);
+            rows.removeAllViews();
+            status.setText((UiLanguage.isRussian()?"Ошибка отображения радио: ":"Radio display error: ") + failure.getClass().getSimpleName());
+        }
+    }
+    private void renderContent(){
         if(navigation==null)return;
         boolean home=selected.isEmpty(),nav=selected.equals("Навигация");
         landing.setVisibility(home?VISIBLE:GONE);navigation.setVisibility(nav?VISIBLE:GONE);
@@ -142,13 +151,15 @@ final class RadioPage extends LinearLayout {
             for(NetworkCheckResult r:values)if(overlaps.stream().anyMatch(o->RadioPresentation.identity(o).equals(RadioPresentation.identity(r))))addRow(r);
         }else if(list){if(values.isEmpty())rows.addView(label("Нет наблюдений по выбранному фильтру",14));for(NetworkCheckResult r:values)addRow(r);}
         else{
-            spectrum.values=values;spectrum.hit.clear();spectrum.targets.clear();spectrum.setContentDescription("График "+selected+", "+fresh+" измерений. Для чтения всех устройств откройте список.");
+            spectrum.values=values;spectrum.hit.clear();spectrum.targets.clear();spectrum.setContentDescription(UiLanguage.text("График "+selected+", "+fresh+" измерений. Для чтения всех устройств откройте список."));
+            if(spectrum.getParent() instanceof ViewGroup)((ViewGroup)spectrum.getParent()).removeView(spectrum);
             rows.addView(spectrum,new LayoutParams(-1,dp(310)));spectrum.invalidate();
             if(fresh==0)rows.addView(label(values.isEmpty()
                 ?selected.equals("WiFi")?"Нет сетей Wi-Fi для выбранного диапазона и протокола.":"Нет измерений. Проверьте разрешения и включение модуля."
                 :"Свежий уровень сигнала отсутствует. Доступные сведения — в списке.",14));
         }
         scroll.post(()->scroll.scrollTo(0,y));
+        UiLanguage.apply(this);
     }
     private String title(NetworkCheckResult r){return selected.equals("Cell")?RadioPresentation.value(r.metrics,"technology")+" · "+operator(r.metrics)+" · "+RadioPresentation.value(r.metrics,"cellId"):RadioPresentation.value(r.metrics,"ssid","name").equals("—")?r.name:RadioPresentation.value(r.metrics,"ssid","name");}
     private boolean needsPermissions(){
@@ -166,13 +177,13 @@ final class RadioPage extends LinearLayout {
             &&"true".equals(r.metrics.get("connected"));
         return currentBluetoothConnection||observed&&("true".equals(r.metrics.get("connected"))||"true".equals(r.metrics.get("registered")));}
     private int color(NetworkCheckResult r){return colors.computeIfAbsent(RadioPresentation.identity(r),key->Color.HSVToColor(new float[]{(colors.size()*137.508f+205)%360,.66f,.85f}));}
-    private LinearLayout card(NetworkCheckResult r){LinearLayout box=new LinearLayout(activity);box.setOrientation(VERTICAL);box.setPadding(dp(14),dp(12),dp(14),dp(12));GradientDrawable bg=new GradientDrawable();bg.setColor(surface);bg.setCornerRadius(dp(12));bg.setStroke(dp(connected(r)?2:1),connected(r)?GREEN:edge);box.setBackground(bg);LayoutParams p=new LayoutParams(-1,-2);p.bottomMargin=dp(10);box.setLayoutParams(p);return box;}
+    private LinearLayout card(NetworkCheckResult r){LinearLayout box=new LinearLayout(activity);box.setOrientation(VERTICAL);box.setPadding(dp(14),dp(12),dp(14),dp(12));GradientDrawable bg=new GradientDrawable();bg.setColor(surface);bg.setCornerRadius(terminal?0:dp(12));bg.setStroke(dp(connected(r)?2:1),connected(r)?GREEN:edge);box.setBackground(bg);LayoutParams p=new LayoutParams(-1,-2);p.bottomMargin=dp(10);box.setLayoutParams(p);return box;}
     private void addRow(NetworkCheckResult r){LinearLayout box=card(r);TextView heading=label("●  "+title(r),15);heading.setTag(Boolean.TRUE);heading.setTextColor(color(r));box.addView(heading);box.addView(label(power(r)+"  ·  "+frequency(r),14));box.addView(label(RadioPresentation.value(r.metrics,"bssid","address","cellId")+(connected(r)?" · подключено":"")+(!fresh(r)?" · устарело / возраст неизвестен":""),11));box.setOnClickListener(v->open(r));box.setFocusable(true);
         LinearLayout row=new LinearLayout(activity);row.setGravity(Gravity.CENTER_VERTICAL);row.addView(box,new LayoutParams(0,-2,1));
         if(list){Button hide=button("Hide",()->{hidden.computeIfAbsent(selected,k->new HashSet<>()).add(RadioPresentation.identity(r));render();});hide.setContentDescription("Hide "+title(r));row.addView(hide,new LayoutParams(dp(68),dp(50)));}
         rows.addView(row);
     }
-    private void styleSwitch(Button button,boolean active){GradientDrawable shape=new GradientDrawable();shape.setColor(active?foreground:surface);shape.setCornerRadius(dp(10));shape.setStroke(dp(2),active?foreground:muted);button.setBackground(shape);button.setTextColor(active?surface:foreground);button.setAlpha(1f);}
+    private void styleSwitch(Button button,boolean active){GradientDrawable shape=new GradientDrawable();shape.setColor(active?(terminal?TerminalTheme.ACCENT:foreground):surface);shape.setCornerRadius(terminal?0:dp(10));shape.setStroke(dp(2),active?foreground:muted);button.setBackground(shape);button.setTextColor(active?surface:foreground);button.setAlpha(1f);}
     private void showHidden(){showingHidden=true;scroll.scrollTo(0,0);render();}
     private void rememberBluetooth(List<NetworkCheckResult> values){long now=SystemClock.elapsedRealtime();for(NetworkCheckResult r:values){long at=RadioCsv.number(r.metrics.get("observedElapsedMs"),-1),level=signal(r);if(at<=0||now-at>120000||level < -140||level>20)continue;List<long[]> trail=bluetoothHistory.computeIfAbsent(RadioPresentation.identity(r),k->new ArrayList<>());if(trail.isEmpty()||trail.get(trail.size()-1)[0]!=at)trail.add(new long[]{at,level});}bluetoothHistory.values().forEach(trail->trail.removeIf(point->now-point[0]>120000));bluetoothHistory.entrySet().removeIf(e->e.getValue().isEmpty());}
     private void open(NetworkCheckResult r){detailId=RadioPresentation.identity(r);overlaps=Collections.emptyList();scroll.scrollTo(0,0);render();}
@@ -193,7 +204,7 @@ final class RadioPage extends LinearLayout {
     private String fieldName(String key){return switch(key){case "centerFreq0MHz"->"Центр канала 1, MHz";case "centerFreq1MHz"->"Центр канала 2, MHz";case "observedElapsedMs"->"Время ОС, ms";case "source"->"Источник";case "bands"->"Диапазоны";case "bonded"->"Сопряжено";case "connectable"->"Допускает подключение";case "serviceUuids"->"Сервисы UUID";case "primaryPhy"->"Основной PHY (код Android)";case "secondaryPhy"->"Вторичный PHY (код Android)";default->key;};}
     static long signal(NetworkCheckResult r){double n=RadioPresentation.signal(r);return Double.isFinite(n)?(long)n:Long.MIN_VALUE;}
     static long age(Map<String,String> m){long at=RadioCsv.number(m.get("observedElapsedMs"),-1);return at<=0?-1:SystemClock.elapsedRealtime()-at;}
-    private TextView label(String s,int size){TextView t=new TextView(activity);t.setText(s);t.setTextSize(size);t.setTextColor(size<=12?muted:foreground);t.setPadding(0,dp(5),0,dp(5));return t;}
+    private TextView label(String s,int size){TextView t=new TextView(activity);t.setText(UiLanguage.text(s));t.setTextSize(size);t.setTextColor(size<=12?muted:foreground);t.setPadding(0,dp(5),0,dp(5));if(terminal)t.setTypeface(Typeface.MONOSPACE);return t;}
     private int dp(int n){return Math.round(n*getResources().getDisplayMetrics().density);}
 
     private final class Spectrum extends View {
@@ -201,6 +212,7 @@ final class RadioPage extends LinearLayout {
         Spectrum(Context c){super(c);setFocusable(true);}
         @Override protected void onDraw(Canvas c){
             super.onDraw(c);hit.clear();targets.clear();float left=dp(40),right=getWidth()-dp(10),top=dp(24),bottom=getHeight()-dp(44);
+            if(terminal){drawTerminal(c,left,right,top,bottom);return;}
             p.setTypeface(Typeface.MONOSPACE);p.setTextSize(dp(10));p.setStyle(Paint.Style.FILL);p.setColor(surface);c.drawRoundRect(new RectF(0,0,getWidth(),getHeight()),dp(12),dp(12),p);
             for(int dbm:new int[]{-20,-40,-60,-80,-100,-120,-140}){float y=bottom-(dbm+140)/160f*(bottom-top);p.setColor(edge);c.drawLine(left,y,right,y,p);p.setColor(muted);c.drawText(""+dbm,dp(2),y,p);}
             if(selected.equals("Bluetooth")){drawBluetooth(c,left,right,top,bottom);return;}
@@ -221,6 +233,43 @@ final class RadioPage extends LinearLayout {
                 }else{double f=RadioPresentation.number(r.metrics,"frequencyMHz");if(!Double.isFinite(f))continue;float x=(float)(left+(f-min)/(max-min)*(right-left));rectangle(c,r,x-dp(4),x+dp(4),y,bottom,left,right);}
             }c.restore();p.setColor(muted);p.setStyle(Paint.Style.FILL);
             for(int i=0;i<=4;i++){float x=left+(right-left)*i/4;p.setTextAlign(i==4?Paint.Align.RIGHT:Paint.Align.LEFT);c.drawText(String.format(Locale.ROOT,"%.0f",min+(max-min)*i/4),x,bottom+dp(18),p);}p.setTextAlign(Paint.Align.LEFT);c.drawText("MHz",left,bottom+dp(34),p);
+        }
+        private void drawTerminal(Canvas c,float left,float right,float top,float bottom){
+            c.drawColor(surface);p.setTypeface(Typeface.MONOSPACE);p.setStyle(Paint.Style.FILL);p.setTextAlign(Paint.Align.LEFT);p.setTextSize(dp(10));
+            if(right<=left||bottom<=top)return;
+            for(int dbm:new int[]{-20,-40,-60,-80,-100,-120,-140}){
+                float y=bottom-(dbm+140)/160f*(bottom-top);p.setColor(muted);c.drawText(""+dbm,dp(2),y,p);
+                for(float x=left;x<right;x+=dp(14))c.drawText("·",x,y,p);
+            }
+            if(selected.equals("Bluetooth")){
+                long now=SystemClock.elapsedRealtime();p.setColor(muted);c.drawText("[-120s]",left,bottom+dp(18),p);p.setTextAlign(Paint.Align.RIGHT);c.drawText("[now]",right,bottom+dp(18),p);p.setTextAlign(Paint.Align.LEFT);
+                for(NetworkCheckResult r:values){List<long[]> trail=bluetoothHistory.get(RadioPresentation.identity(r));if(trail==null)continue;
+                    float previousX=Float.NaN,previousY=Float.NaN;p.setColor(connected(r)?GREEN:color(r));
+                    for(long[] sample:trail){float x=right-(now-sample[0])/120000f*(right-left),y=bottom-(sample[1]+140)/160f*(bottom-top);if(x<left||x>right)continue;
+                        if(Float.isFinite(previousX)){int steps=Math.min(100,Math.max(1,(int)(Math.hypot(x-previousX,y-previousY)/dp(10))));for(int j=1;j<steps;j++){float part=j/(float)steps;c.drawText("·",previousX+(x-previousX)*part,previousY+(y-previousY)*part,p);}}
+                        c.drawText("*",x,y,p);hit.add(new RectF(x-dp(15),y-dp(15),x+dp(15),y+dp(15)));targets.add(r);previousX=x;previousY=y;
+                    }
+                }
+                return;
+            }
+            boolean wifi=selected.equals("WiFi");double min=band==0?2400:band==1?4900:5925,max=band==0?2500:band==1?5925:7125;
+            if(!wifi){min=Double.POSITIVE_INFINITY;max=Double.NEGATIVE_INFINITY;for(NetworkCheckResult r:values){double f=RadioPresentation.number(r.metrics,"frequencyMHz");if(Double.isFinite(f)){min=Math.min(min,f);max=Math.max(max,f);}}if(!Double.isFinite(min)){p.setColor(muted);c.drawText("[ MHz: -- ]",left,top+dp(16),p);return;}double padding=Math.max(10,(max-min)*.07);min-=padding;max+=padding;}
+            for(NetworkCheckResult r:values){if(!fresh(r)||signal(r)<-140||signal(r)>20)continue;double frequency=RadioPresentation.number(r.metrics,"frequencyMHz");if(!Double.isFinite(frequency))continue;
+                float x=(float)(left+(frequency-min)/(max-min)*(right-left)),y=bottom-(signal(r)+140)/160f*(bottom-top);if(x<left||x>right)continue;
+                p.setColor(connected(r)?GREEN:color(r));for(float at=y+dp(12);at<bottom;at+=dp(12))c.drawText("│",x,at,p);
+                c.drawText(connected(r)?"[+]":"[•]",x-dp(8),y,p);
+                if(wifi){if("80+80".equals(r.metrics.get("bandwidthMHz"))){for(String key:new String[]{"centerFreq0MHz","centerFreq1MHz"}){double center=RadioPresentation.number(r.metrics,key);if(center>0)terminalSpan(c,r,center,80,min,max,left,right,y,bottom);}}
+                    else{double width=RadioPresentation.number(r.metrics,"bandwidthMHz"),center=RadioPresentation.number(r.metrics,"centerFreq0MHz");if(width>0){if(width<=20||!Double.isFinite(center)||center<=0)center=frequency;terminalSpan(c,r,center,width,min,max,left,right,y,bottom);}}}
+                String name=title(r);if(name!=null&&!name.isEmpty()){p.setTextSize(dp(8));int count=p.breakText(name,true,Math.max(dp(18),right-x),null);c.drawText(name.substring(0,count),x,y-dp(8),p);p.setTextSize(dp(10));}
+                hit.add(new RectF(x-dp(15),y-dp(16),x+dp(15),bottom));targets.add(r);
+            }
+            p.setColor(muted);for(int i=0;i<=4;i++){float x=left+(right-left)*i/4;p.setTextAlign(i==4?Paint.Align.RIGHT:Paint.Align.LEFT);c.drawText(String.format(Locale.ROOT,"%.0f",min+(max-min)*i/4),x,bottom+dp(18),p);}p.setTextAlign(Paint.Align.LEFT);c.drawText("[MHz]",left,bottom+dp(34),p);
+        }
+        private void terminalSpan(Canvas c,NetworkCheckResult r,double center,double width,double min,double max,float left,float right,float y,float bottom){
+            float from=(float)(left+(center-width/2-min)/(max-min)*(right-left)),to=(float)(left+(center+width/2-min)/(max-min)*(right-left));
+            from=Math.max(left,from);to=Math.min(right,to);if(to<=from)return;
+            for(float at=from;at<to;at+=dp(9))c.drawText("═",at,y,p);
+            hit.add(new RectF(from,y-dp(14),to,bottom));targets.add(r);
         }
         private void drawBluetooth(Canvas c,float left,float right,float top,float bottom){
             long now=SystemClock.elapsedRealtime();p.setColor(muted);c.drawText("−120 s",left,bottom+dp(20),p);p.setTextAlign(Paint.Align.RIGHT);c.drawText("now",right,bottom+dp(20),p);p.setTextAlign(Paint.Align.LEFT);

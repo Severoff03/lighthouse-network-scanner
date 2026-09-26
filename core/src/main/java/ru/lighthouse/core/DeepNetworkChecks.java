@@ -85,13 +85,6 @@ final class DeepNetworkChecks {
                 } finally { connection.disconnect(); }
             }, timeout * 3));
         }
-        for (String host : Arrays.asList("ya.ru", "www.google.com", "ozon.ru")) for (String protocol : Arrays.asList("TLSv1.2", "TLSv1.3")) {
-            check("tls_version_" + host + protocol, host + " / " + protocol, "Версии TLS", () -> {
-                try (SSLSocket socket = secureSocket(host, 443, protocol)) {
-                    return socket.getSession().getProtocol() + "; cipher=" + socket.getSession().getCipherSuite();
-                }
-            });
-        }
         for (String address : Arrays.asList("1.1.1.1", "8.8.8.8", "77.88.8.8")) {
             check("icmp_series_" + address, "Серия ping / " + address, "Повторные замеры", () -> {
                 InetAddress target = NetworkDeadline.resolve(address, timeout)[0];

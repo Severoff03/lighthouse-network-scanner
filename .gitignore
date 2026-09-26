@@ -13,6 +13,8 @@ Builder/
 release-manager/
 Build Releases.exe
 Build-Releases.ps1
+Public Release.exe
+Public-Release.ps1
 Version Manager.bat
 Lighthouse-Release-Manager.zip
 UPDATE.txt

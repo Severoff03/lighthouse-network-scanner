@@ -133,7 +133,7 @@ public final class MainActivity extends Activity {
     private SettingsPage settingsPage;
     private String currentTab = "scan";
     private ProgressBar progress;
-    private boolean dark;
+    private boolean dark,terminal;private TextView terminalHeader;
     private int background, surface, primary, secondary;
     private int checkedCount, available, degraded, unavailable;
     private volatile boolean alive = true;
@@ -154,17 +154,15 @@ public final class MainActivity extends Activity {
         UiLanguage.init(this);
         updateManager = new UpdateManager(this);
         pendingUpdate = UpdateManager.loadPending(this);
-        dark = isDark();
+        terminal=TerminalTheme.enabled(this);dark = isDark();
         setTheme(dark ? android.R.style.Theme_Material_NoActionBar : android.R.style.Theme_Material_Light_NoActionBar);
-        background = dark ? Color.rgb(8, 10, 16) : Color.rgb(240, 244, 251);
-        surface = dark ? Color.rgb(22, 25, 34) : Color.WHITE;
-        primary = dark ? Color.WHITE : Color.rgb(22, 30, 46);
-        secondary = dark ? Color.rgb(169, 176, 194) : Color.rgb(91, 102, 126);
+        setPalette();
         applySystemBars();
         View content = buildUi();
         setContentView(content);
-        UiLanguage.apply(content);
-        ui.postDelayed(new Runnable(){@Override public void run(){if(!alive)return;UiLanguage.apply(getWindow().getDecorView());ui.postDelayed(this,3000);}},3000);
+        UiLanguage.apply(content);if(terminal)TerminalTheme.apply(content);
+        ui.post(new Runnable(){private int frame;@Override public void run(){if(!alive)return;if(terminal&&terminalHeader!=null){String[] cursor={"|","/","-","\\"};terminalHeader.setText("[ "+cursor[frame++%cursor.length]+" ]  LIGHTHOUSE // RADIO + NETWORK");}ui.postDelayed(this,700);}});
+        ui.postDelayed(new Runnable(){@Override public void run(){if(!alive)return;UiLanguage.apply(getWindow().getDecorView());if(terminal)TerminalTheme.apply(getWindow().getDecorView());ui.postDelayed(this,3000);}},3000);
         content.requestApplyInsets();
         bindActions();
         scheduleBackgroundUpdateCheck();
@@ -331,6 +329,7 @@ public final class MainActivity extends Activity {
         pages.addView(historyPage, new FrameLayout.LayoutParams(-1, -1));
         pages.addView(settingsPage, new FrameLayout.LayoutParams(-1, -1));
         LinearLayout shell = new LinearLayout(this); shell.setOrientation(LinearLayout.VERTICAL); shell.setBackgroundColor(background);
+        if(terminal){terminalHeader=text("[ | ]  LIGHTHOUSE // RADIO + NETWORK",11,TerminalTheme.ACCENT,Typeface.BOLD);terminalHeader.setPadding(dp(12),dp(6),dp(12),dp(6));terminalHeader.setBackground(TerminalTheme.panel(this,TerminalTheme.SURFACE));shell.addView(terminalHeader,new LinearLayout.LayoutParams(-1,dp(32)));}else terminalHeader=null;
         shell.addView(pages, new LinearLayout.LayoutParams(-1, 0, 1));
         shell.addView(buildTabs(), new LinearLayout.LayoutParams(-1, dp(64)));
         applySafeArea(shell);
@@ -339,10 +338,10 @@ public final class MainActivity extends Activity {
 
     private View buildTabs() {
         LinearLayout tabs = new LinearLayout(this); tabs.setBackgroundColor(surface);
-        scanTab = actionButton(UiLanguage.isRussian()?"Сеть":"Network",surface,primary); radioTab = actionButton("Radio",surface,primary);
-        historyTab = actionButton("Tool",surface,primary);settingsTab = actionButton("Settings",surface,primary);
-        setTabIcon(scanTab,R.drawable.nav_network);setTabIcon(radioTab,R.drawable.nav_radio);
-        setTabIcon(historyTab,R.drawable.nav_tools);setTabIcon(settingsTab,R.drawable.nav_settings);
+        scanTab = actionButton(terminal?(UiLanguage.isRussian()?"[ СЕТЬ ]":"[ NET ]"):UiLanguage.isRussian()?"Сеть":"Network",surface,primary); radioTab = actionButton(terminal?"[ RADIO ]":"Radio",surface,primary);
+        historyTab = actionButton(terminal?(UiLanguage.isRussian()?"[ ИНСТР ]":"[ TOOLS ]"):"Tool",surface,primary);settingsTab = actionButton(terminal?(UiLanguage.isRussian()?"[ НАСТР ]":"[ CONFIG ]"):"Settings",surface,primary);
+        if(!terminal){setTabIcon(scanTab,R.drawable.nav_network);setTabIcon(radioTab,R.drawable.nav_radio);
+        setTabIcon(historyTab,R.drawable.nav_tools);setTabIcon(settingsTab,R.drawable.nav_settings);}
         scanTab.setOnClickListener(v -> showScanTab());radioTab.setOnClickListener(v -> showRadioTab());
         historyTab.setOnClickListener(v -> showToolsTab());settingsTab.setOnClickListener(v -> showSettingsTab());
         for (Button tab : new Button[]{scanTab,radioTab,historyTab,settingsTab}) {
@@ -372,8 +371,8 @@ public final class MainActivity extends Activity {
 
 
     private void styleTab(Button tab, boolean selected) {
-        tab.setBackground(round(selected ? CYAN : surface, 17));
-        int color = selected ? Color.rgb(5, 31, 38) : primary;
+        tab.setBackground(round(selected ? (terminal?TerminalTheme.ACCENT:CYAN) : surface, 17));
+        int color = selected ? (terminal?TerminalTheme.BACKGROUND:Color.rgb(5, 31, 38)) : primary;
         tab.setTextColor(color);
         Drawable icon = tab.getCompoundDrawables()[1]; if(icon != null) icon.setTint(color);
         tab.setAlpha(tab.isEnabled() ? (selected ? 1f : .82f) : .35f); tab.setSelected(selected);
@@ -418,7 +417,7 @@ public final class MainActivity extends Activity {
             if (sample.error != null && !sample.error.isBlank()) item.addView(text(sample.error,12,tone,Typeface.NORMAL));
             categoryPageContent.addView(item,margins(-1,-2,0,0,0,0,9));
         }
-        TextView note = text("Ping, DNS и HTTPS проверяются отдельно. Отсутствие ответа на один протокол не доказывает, что сервис полностью выключен.",12,secondary,Typeface.NORMAL);
+        TextView note = text("Ping, DNS и HTTPS проверяются отдельно. Отсутствие ответа на один протокол не доказывает, что сервис полностью выключен. Сертификат сервера в проверке доступности не проверяется.",12,secondary,Typeface.NORMAL);
         categoryPageContent.addView(note,margins(-1,-2,0,0,0,0,10));
         currentTab="category";scanPage.setVisibility(View.GONE);categoryPage.setVisibility(View.VISIBLE);
         historyPage.setVisibility(View.GONE);settingsPage.setVisibility(View.GONE);
@@ -549,16 +548,17 @@ public final class MainActivity extends Activity {
 
     private View buildHeader() {
         LinearLayout header = new LinearLayout(this); header.setGravity(Gravity.CENTER_VERTICAL);
-        ImageView logo = new ImageView(this);
-        logo.setImageResource(R.drawable.lighthouse_logo);
-        logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        logo.setContentDescription("Логотип Lighthouse");
-        header.addView(logo, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        if(terminal){header.addView(text("[//]",21,TerminalTheme.ACCENT,Typeface.BOLD),new LinearLayout.LayoutParams(dp(48),dp(48)));}
+        else{ImageView logo = new ImageView(this);
+            logo.setImageResource(R.drawable.lighthouse_logo);
+            logo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            logo.setContentDescription("Логотип Lighthouse");
+            header.addView(logo, new LinearLayout.LayoutParams(dp(48), dp(48)));}
         LinearLayout names = new LinearLayout(this); names.setOrientation(LinearLayout.VERTICAL); names.setPadding(dp(12), 0, 0, 0);
         names.addView(text("Lighthouse", 23, primary, Typeface.BOLD));
         names.addView(text("Состояние интернета", 13, secondary, Typeface.NORMAL));
         header.addView(names, new LinearLayout.LayoutParams(0, -2, 1));
-        settings = new Button(this); settings.setText("⚙"); settings.setTextSize(22); settings.setGravity(Gravity.CENTER);
+        settings = new Button(this); settings.setText(terminal?"[> ]":"⚙"); settings.setTextSize(terminal?14:22); settings.setGravity(Gravity.CENTER);
         settings.setContentDescription("Настройки"); settings.setPadding(0, 0, 0, 0);
         settings.setBackground(round(surface, 15)); settings.setTextColor(primary);
         header.addView(settings, new LinearLayout.LayoutParams(dp(48), dp(48)));
@@ -583,7 +583,7 @@ public final class MainActivity extends Activity {
 
     private View buildActions() {
         LinearLayout actions = new LinearLayout(this); actions.setOrientation(LinearLayout.HORIZONTAL);
-        scan = actionButton("Начать скан", CYAN, Color.rgb(5, 31, 38));
+        scan = actionButton("Начать скан", terminal?TerminalTheme.ACCENT:CYAN, terminal?TerminalTheme.BACKGROUND:Color.rgb(5, 31, 38));
         save = actionButton("Выгрузить лог", surface, primary); save.setEnabled(false); save.setAlpha(.45f);
         radioScan = actionButton("Радио", surface, primary);
         radioScan.setContentDescription("Снимок сотовых вышек, Wi-Fi и Bluetooth");
@@ -595,7 +595,7 @@ public final class MainActivity extends Activity {
     }
 
     private Button actionButton(String label, int color, int textColor) {
-        Button value = new Button(this); value.setText(label); value.setTextSize(14); value.setAllCaps(false);
+        Button value = new Button(this); value.setText(UiLanguage.text(label)); value.setTextSize(14); value.setAllCaps(false);
         value.setTypeface(null, Typeface.BOLD); value.setTextColor(textColor); value.setBackground(round(color, 17));
         value.setPadding(dp(8), 0, dp(8), 0); return value;
     }
@@ -614,7 +614,7 @@ public final class MainActivity extends Activity {
         ProbeResult.Status filter = ProbeResult.Status.values()[position];
         card.setClickable(true); card.setFocusable(true);
         TypedValue ripple = new TypedValue();
-        if (getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true) && ripple.resourceId != 0)
+        if (!terminal && getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true) && ripple.resourceId != 0)
             card.setForeground(getDrawable(ripple.resourceId));
         card.setContentDescription("Показать сервисы: " + label.toLowerCase(java.util.Locale.ROOT));
         card.setOnClickListener(view -> showStatusResults(filter));
@@ -650,7 +650,7 @@ public final class MainActivity extends Activity {
         lastReport = null; availableInRestrictions.setVisibility(View.GONE);
         scan.setText("Отменить"); radioScan.setEnabled(false); radioScan.setAlpha(.45f); save.setEnabled(false); save.setAlpha(.45f);
         settingsPage.updateAvailability(true, false);
-        progress.setMax(targets.size() * profile.passes); progress.setProgress(0); progress.setVisibility(View.VISIBLE);
+        progress.setMax(targets.size() * profile.passes); progress.setProgress(0); progress.setVisibility(terminal?View.GONE:View.VISIBLE);
         checkedCount = available = degraded = unavailable = 0;
         currentResults.clear(); completedRequests = 0;
         updateCounts(); emptyState.setVisibility(View.GONE); recommendations.setVisibility(View.GONE);
@@ -752,7 +752,7 @@ public final class MainActivity extends Activity {
     private void startRadioSnapshot() {
         if (!alive || scanning || radioScanning) return;
         radioScanning = true; radioScan.setEnabled(false); radioScan.setText("Снимаем…");
-        progress.setIndeterminate(false); progress.setMax(5); progress.setProgress(0); progress.setVisibility(View.VISIBLE);
+        progress.setIndeterminate(false); progress.setMax(5); progress.setProgress(0); progress.setVisibility(terminal?View.GONE:View.VISIBLE);
         details.setText("Радиоснимок: подготовка");
         Toast.makeText(this, UiLanguage.text("Снимаем вышки, Wi‑Fi и Bluetooth…"), Toast.LENGTH_SHORT).show();
         executor.submit(() -> {
@@ -788,7 +788,7 @@ public final class MainActivity extends Activity {
         String text = checkedCount + " из " + targets.size() + " сервисов  •  " + seconds + " с\n" + scanPhase
             + "\nЗамеров: " + completedRequests;
         if (!latestService.isEmpty()) text += "\nПоследний ответ: " + latestService;
-        details.setText(text);
+        details.setText(UiLanguage.text(text));
     }
 
     private void resetScanControls() {
@@ -860,7 +860,7 @@ public final class MainActivity extends Activity {
         setHeroGradient(report.level);
         overview.setText(summary);
         if (report.assessment.state == NetworkAssessment.State.RED) {
-            availableInRestrictions.setText("Доступны при текущих ограничениях\n\n" + ReportAnalytics.availableServicesText(report));
+            availableInRestrictions.setText(UiLanguage.text("Доступны при текущих ограничениях\n\n" + ReportAnalytics.availableServicesText(report)));
             availableInRestrictions.setVisibility(View.VISIBLE);
         } else availableInRestrictions.setVisibility(View.GONE);
         showNetworkChecks(report.networkChecks);
@@ -1067,9 +1067,9 @@ public final class MainActivity extends Activity {
         tile.setPadding(dp(14), dp(13), dp(14), dp(13)); tile.setBackground(round(surface, 18));
         tile.setClickable(true); tile.setFocusable(true); tile.setContentDescription("Открыть категорию " + name);
         TypedValue ripple = new TypedValue();
-        if (getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true) && ripple.resourceId != 0)
+        if (!terminal && getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true) && ripple.resourceId != 0)
             tile.setForeground(getDrawable(ripple.resourceId));
-        TextView icon = text(ReportAnalytics.categoryIcon(name), 23, color, Typeface.BOLD);
+        TextView icon = text(terminal?"[+]":ReportAnalytics.categoryIcon(name), 23, color, Typeface.BOLD);
         tile.addView(icon);
         TextView title = text(name, 14, primary, Typeface.BOLD); title.setMaxLines(2);
         title.setPadding(0, dp(5), 0, dp(5)); tile.addView(title);
@@ -1233,16 +1233,16 @@ public final class MainActivity extends Activity {
     private void saveSettings(String theme, String language, ScanProfile profile, boolean radio, String detectorToken,
                               List<NamedConfiguration> proxies, List<NamedConfiguration> vpns) {
         if (scanning) return;
-        boolean oldDark = dark;
+        boolean oldDark = dark,oldTerminal=terminal;
         boolean languageChanged=UiLanguage.isRussian()!="ru".equals(language);
         getSharedPreferences("settings", MODE_PRIVATE).edit().putString("theme", theme)
             .putString("language",language).putString("profile", profile == ScanProfile.DEEP ? "deep" : "quick").putBoolean("radio", radio).apply();
         detector404Token = detectorToken;
         telegramProxies = new ArrayList<>(proxies); vpnProfiles = new ArrayList<>(vpns);
-        dark = isDark();
+        terminal=TerminalTheme.enabled(this);dark = isDark();
         setTheme(dark ? android.R.style.Theme_Material_NoActionBar : android.R.style.Theme_Material_Light_NoActionBar);
         if(languageChanged){recreate();return;}
-        if (oldDark != dark) rebuildForTheme();
+        if (oldDark != dark || oldTerminal != terminal) rebuildForTheme();
         else {
             if (lastReport == null) details.setText(profile == ScanProfile.DEEP
                 ? "Проверка DNS / TCP / HTTPS"
@@ -1387,14 +1387,11 @@ public final class MainActivity extends Activity {
     }
 
     private void rebuildForTheme() {
-        background = dark ? Color.rgb(8, 10, 16) : Color.rgb(240, 244, 251);
-        surface = dark ? Color.rgb(22, 25, 34) : Color.WHITE;
-        primary = dark ? Color.WHITE : Color.rgb(22, 30, 46);
-        secondary = dark ? Color.rgb(169, 176, 194) : Color.rgb(91, 102, 126);
+        setPalette();
         applySystemBars();
         ScanReport report = lastReport;
         byte[] log = lastLog; String name = lastName;
-        View content = buildUi(); setContentView(content); content.requestApplyInsets(); bindActions();
+        View content = buildUi(); setContentView(content); UiLanguage.apply(content);if(terminal)TerminalTheme.apply(content); content.requestApplyInsets(); bindActions();
         lastReport = report; lastLog = log; lastName = name;
         if (report != null) {
             currentResults.clear(); available = degraded = unavailable = completedRequests = 0;
@@ -1480,7 +1477,7 @@ public final class MainActivity extends Activity {
 
     private boolean isDark() {
         String value = getSharedPreferences("settings", MODE_PRIVATE).getString("theme", "dark");
-        if ("dark".equals(value)) return true; if ("light".equals(value)) return false;
+        if ("dark".equals(value)||"watchdogs".equals(value)) return true; if ("light".equals(value)) return false;
         return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 
@@ -1514,13 +1511,20 @@ public final class MainActivity extends Activity {
     }
 
     private TextView text(String value, int sp, int color, int style) {
-        TextView view = new TextView(this); view.setText(value); view.setTextSize(sp); view.setTextColor(color);
-        view.setTypeface(Typeface.create("sans", style)); return view;
+        TextView view = new TextView(this); view.setText(UiLanguage.text(value)); view.setTextSize(sp); view.setTextColor(color);
+        view.setTypeface(Typeface.create(terminal?"monospace":"sans", style)); return view;
     }
 
     private GradientDrawable round(int color, int radiusDp) {
-        GradientDrawable drawable = new GradientDrawable(); drawable.setColor(color); drawable.setCornerRadius(dp(4));
+        GradientDrawable drawable = new GradientDrawable(); drawable.setColor(color); drawable.setCornerRadius(terminal?0:dp(4));if(terminal)drawable.setStroke(dp(1),TerminalTheme.BORDER);
         return drawable;
+    }
+
+    private void setPalette() {
+        background=terminal?TerminalTheme.BACKGROUND:dark?Color.rgb(8,10,16):Color.rgb(240,244,251);
+        surface=terminal?TerminalTheme.SURFACE:dark?Color.rgb(22,25,34):Color.WHITE;
+        primary=terminal?TerminalTheme.TEXT:dark?Color.WHITE:Color.rgb(22,30,46);
+        secondary=terminal?TerminalTheme.MUTED:dark?Color.rgb(169,176,194):Color.rgb(91,102,126);
     }
 
     private LinearLayout.LayoutParams margins(int width, int height, float weight,
