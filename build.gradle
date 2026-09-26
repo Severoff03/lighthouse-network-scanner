@@ -1,0 +1,12 @@
+plugins {
+    id 'com.android.application' version '8.5.0' apply false
+}
+
+def versionFile = file('version.properties')
+def releaseVersion = new Properties()
+versionFile.withInputStream { releaseVersion.load(it) }
+
+allprojects {
+    group = 'ru.lighthouse'
+    version = releaseVersion.getProperty('VERSION_NAME')
+}

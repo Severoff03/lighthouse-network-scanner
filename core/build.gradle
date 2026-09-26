@@ -1,0 +1,13 @@
+plugins { id 'java-library' }
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.register('regressionTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'ru.lighthouse.core.CoreRegressionTest'
+}
+tasks.named('check') { dependsOn regressionTest }

@@ -1,0 +1,66 @@
+plugins { id 'com.android.application' }
+
+def releaseVersion = new Properties()
+rootProject.file('version.properties').withInputStream { releaseVersion.load(it) }
+
+def updateValue = { String propertyName, String environmentName ->
+    def value = project.findProperty(propertyName)
+    if (value == null || value.toString().trim().isEmpty()) value = System.getenv(environmentName)
+    value == null ? '' : value.toString()
+}
+def buildConfigString = { String value ->
+    '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"'
+}
+def releaseStoreFile = updateValue('lighthouseReleaseStoreFile', 'LIGHTHOUSE_KEYSTORE_PATH')
+def releaseStorePassword = updateValue('lighthouseReleaseStorePassword', 'LIGHTHOUSE_KEYSTORE_PASSWORD')
+def releaseKeyAlias = updateValue('lighthouseReleaseKeyAlias', 'LIGHTHOUSE_KEY_ALIAS')
+def releaseKeyPassword = updateValue('lighthouseReleaseKeyPassword', 'LIGHTHOUSE_KEY_PASSWORD')
+def releaseSigningConfigured = !releaseStoreFile.trim().isEmpty() && !releaseStorePassword.trim().isEmpty()
+    && !releaseKeyAlias.trim().isEmpty() && !releaseKeyPassword.trim().isEmpty()
+
+android {
+    namespace 'ru.lighthouse.android'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'ru.lighthouse'
+        minSdk 26
+        targetSdk 35
+        versionCode releaseVersion.getProperty('VERSION_CODE').toInteger()
+        versionName releaseVersion.getProperty('VERSION_NAME')
+        buildConfigField 'String', 'UPDATE_REPOSITORY_OWNER', buildConfigString(updateValue('lighthouseUpdateOwner', 'LIGHTHOUSE_UPDATE_OWNER') ?: 'Severoff03')
+        buildConfigField 'String', 'UPDATE_REPOSITORY_NAME', buildConfigString(updateValue('lighthouseUpdateRepository', 'LIGHTHOUSE_UPDATE_REPOSITORY') ?: 'lighthouse-network-scanner')
+    }
+
+    buildFeatures { buildConfig true }
+
+    signingConfigs {
+        release {
+            if (releaseSigningConfigured) {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // A configured keystore is required for upgrades across different builds.
+            signingConfig releaseSigningConfigured ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
+    }
+}
+
+dependencies {
+    implementation project(':core')
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.2'
+}

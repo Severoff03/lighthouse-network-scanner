@@ -1,0 +1,37 @@
+# Local and generated build output
+.gradle/
+build/
+android/build/
+core/build/
+desktop/build/
+release-manager/build/
+releases/
+docs/
+tools/
+.github/
+Builder/
+release-manager/
+assets/
+Build Releases.exe
+Build-Releases.ps1
+Version Manager.bat
+Lighthouse-Release-Manager.zip
+UPDATE.txt
+
+# Builder runtime files and logs
+Builder/logs/
+Builder/build.lock
+*.tmp
+
+# IDE and machine-local settings
+.idea/
+*.iml
+local.properties
+
+# Local signing material and update credentials
+*.jks
+*.keystore
+*.p12
+.env
+.env.*
+*.log
