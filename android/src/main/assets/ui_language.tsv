@@ -1,0 +1,683 @@
+Настройки сохранены. Результаты предыдущей проверки остались во вкладке «Сканирование».\tSettings saved. Previous scan results remain in Network.
+Логи сохраняются автоматически только внутри приложения. Они никуда не отправляются без экспорта.\tLogs stay in the app until you export them.
+Недоступность сервиса сама по себе не доказывает блокировку: возможны авария, фильтрация или сбой сети.\tAn unanswered service does not prove a block; it may be an outage or a network failure.
+После проверки здесь появится короткое объяснение результата без технических терминов.\tA brief assessment will appear after the scan.
+Ping, DNS и HTTPS проверяются отдельно. Отсутствие ответа на один протокол не доказывает, что сервис полностью выключен.\tPing, DNS and HTTPS are checked separately. One unanswered protocol does not prove the service is down.
+Глубокий скан: 2 прохода и до 5 минут. Состояние радио не равно доступности интернета. Cell ID и BSSID в логе могут раскрывать местоположение.\tDeep scan: two passes, up to five minutes. Radio state differs from internet access. Cell ID and BSSID may reveal location.
+Глубокая проверка занимает до 5 минут. Повторные замеры помогают оценить стабильность сети.\tA deep scan takes up to five minutes. Repeated samples help assess stability.
+Быстрый скан: один проход с ограниченными тайм-аутами.\tQuick scan: one pass with limited timeouts.
+Быстрый скан: один проход. Медленные запросы ограничены тайм-аутом.\tQuick scan: one pass. Slow requests have timeouts.
+Здесь появятся проверки стабильности, IPv6, DNS и защищённых соединений.\tStability, IPv6, DNS and secure connection checks will appear here.
+Вы уверены, что хотите начать мониторинг? Расход вашей батареи существенно увеличится. Выбранные радиоданные и перемещение будут записываться локально каждые 120 секунд. Android может задерживать измерения; возраст данных сохраняется. При выключенном экране Android приостанавливает общий BLE-поиск.\tStart monitoring? Battery use will increase substantially. Selected radio data and movement will be saved locally every 120 seconds. Android may delay measurements; their age is recorded. Unfiltered BLE scanning pauses with the screen off.
+Для ограничений модема нужны права оператора/системы или поддерживаемый интерфейс производителя. Автоматическое восстановление после закрытия приложения без этих прав невозможно.\tModem restrictions require carrier or system privileges, or a supported manufacturer interface. This app cannot restore them automatically after closing without those privileges.
+Изменения в системных настройках сохраняются после закрытия Lighthouse.\tChanges in system settings remain after Lighthouse closes.
+Первый полный скан с обычной доступностью запоминается автоматически. Эталон можно заменить последним завершённым сканом — кроме отсутствия интернета или признаков белых списков.\tThe first complete scan with normal access is saved as a baseline. You can replace it with the last complete scan unless there was no internet or allowlist behavior.
+Lighthouse ищет Mothman в локальной сети при запуске и раз в час. GitHub используется как резерв, если настроен. Установка выполняется стандартным установщиком Android и сохраняет ваши данные.\tLighthouse looks for Mothman on the local network at startup and hourly. GitHub is a fallback if configured. Android's installer preserves your data.
+Lighthouse проверяет последний GitHub Release при запуске и периодически в фоне. При недоступности GitHub проверяется локальный Mothman. APK скачивается после подтверждения и передаётся системному установщику Android.\tLighthouse checks the latest GitHub Release at startup and periodically in the background. When GitHub is unavailable, it checks the local Mothman server. After confirmation, it downloads the APK and opens Android's system installer.
+Установить\tInstall
+Cell ID, Wi-Fi, Bluetooth, GPS и координаты по GPS/сотовой сети в глубоком скане. Эти данные раскрывают местоположение и попадут только в локальный лог. Текущие измерения доступны во вкладке Radio.\tDeep scans can log Cell ID, Wi-Fi, Bluetooth, GPS and location. These can reveal your position; they stay in a local log. Current observations are in Radio.
+Показывает приложения, передававшие данные в фоне за последние 24 часа. Это повод для ручной проверки, а не автоматический диагноз шпионского ПО. Адреса серверов Android не раскрывает.\tShows apps that used background data in the last 24 hours. Review them manually; this is not a spyware diagnosis. Android does not expose server addresses.
+Добавляет агрегированные сообщения о сбоях к локальным измерениям. Нужен личный токен из профиля Detector404; он хранится только до закрытия приложения и в лог не записывается.\tAdds aggregate outage reports to local measurements. Your Detector404 token is kept only until the app closes and is not logged.
+Добавьте до 12 прокси. SOCKS5/HTTP проверяются туннелем до Telegram API; для MTProto — доступность узла. Встроенные публичные прокси не являются доверенными: оператор видит ваш IP. Удерживайте строку, чтобы скопировать ссылку.\tAdd up to 12 proxies. SOCKS5/HTTP are tested through a tunnel to Telegram API; MTProto checks node reachability. Public proxy operators can see your IP. Hold a row to copy its link.
+Добавьте VPN-сервер или ссылку-подписку. Lighthouse проверяет доступность, но не импортирует ключи и не включает VPN. Публичные подписки ведут к узлам неизвестных операторов; не используйте их для банкинга. Удерживайте строку для копирования.\tAdd a VPN server or subscription URL. Lighthouse checks reachability but does not import keys or enable a VPN. Public subscriptions use unknown operators. Hold a row to copy its link.
+Сохраните журнал, если приложение работает неправильно. Перед передачей проверьте его содержимое.\tSave the error log if the app malfunctions. Review it before sharing.
+Изменения применятся после сохранения. Переключение вкладок не сбрасывает выбранные параметры.\tChanges apply after saving. Switching tabs keeps your selected settings.
+Сканирование продолжается. Изменить параметры можно после его завершения.\tScanning is in progress. Settings can be changed when it finishes.
+Android требует точное местоположение для Cell ID, Wi-Fi и GPS, а доступ к телефону — для состояния SIM. На Android 12+ Bluetooth требует отдельные разрешения. GPS-координаты, Cell ID, SSID/BSSID и видимые Bluetooth-устройства попадут в локальный лог и могут рассказать о местоположении. IMEI, IMSI и номер телефона не считываются. Без разрешений остальные проверки продолжатся.\tAndroid requires precise location for Cell ID, Wi-Fi and GPS, and phone access for subscription state. Android 12+ requires separate Bluetooth permissions. Location, Cell ID, SSID/BSSID and visible Bluetooth devices in the local log may reveal your position. IMEI, IMSI and phone number are not read. Other checks continue without permissions.
+Запомнить последний завершённый скан как обычное состояние этой сети? Последующие сканы будут сравниваться с ним.\tSave the last complete scan as this network's normal state? Future scans will be compared with it.
+Сервисы с выбранным состоянием в текущем скане, сгруппированные по категориям.\tServices with this status in the current scan.
+Нет измерений. Проверьте разрешения и включение модуля.\tNo measurements. Check permissions and whether the radio is enabled.
+Нет сетей Wi-Fi для выбранного диапазона и протокола.\tNo Wi-Fi networks match this band and protocol.
+Свежий уровень сигнала отсутствует. Доступные сведения — в списке.\tNo recent signal measurement. Available details are in List.
+Наблюдение больше не доступно. Вернитесь к графику.\tThis observation is no longer available. Return to Graph.
+Свежего спутникового решения нет. Координаты сети не подставляются.\tNo recent satellite fix. Network coordinates are not substituted.
+Источник: Android GnssStatus. C/N₀ — отношение мощности несущей к спектральной плотности шума, не RSSI.\tSource: Android GnssStatus. C/N₀ is carrier-to-noise density, not RSSI.
+Для сравнения нужны два полных скана одной сети.\tTwo complete scans of the same network are needed for comparison.
+Изменений между полными сканами не обнаружено.\tNo changes were found between complete scans.
+После завершения скана здесь появится локальный лог.\tA local log will appear after the scan.
+Настройки\tSettings
+Оформление и параметры диагностики\tAppearance and diagnostic settings
+Оформление\tAppearance
+Тема приложения\tApp theme
+Чёрная\tDark
+Светлая\tLight
+Системная тема следует оформлению устройства.\tSystem theme follows the device.
+Системная\tSystem
+Обновления\tUpdates
+Проверка ещё не выполнялась\tNo update check yet
+Обновления не настроены для этой сборки.\tUpdates are not configured for this build.
+Обновления не настроены для этой сборки\tUpdates are not configured for this build
+Проверить наличие обновлений\tCheck for updates
+Обновить приложение\tUpdate app
+Сканирование\tScanning
+Глубина диагностики\tScan depth
+Глубокая · 2 прохода\tDeep · 2 passes
+Быстрая · 1 проход\tQuick · 1 pass
+Радиодиагностика\tRadio diagnostics
+Доступ к радиоданным\tRadio permissions
+Безопасность устройства\tDevice security
+Доступ к статистике приложений\tApp usage access
+Доступ предоставлен\tAccess granted
+Доступ не предоставлен\tAccess not granted
+Прокси Telegram\tTelegram proxies
+Добавить прокси\tAdd proxy
+Тестирование VPN\tVPN tests
+Добавить VPN-сервер\tAdd VPN server
+Обычный уровень сети\tNormal network baseline
+Запомнить последний скан\tUse last scan as baseline
+Журнал ошибок\tError log
+Сохранить журнал ошибок\tSave error log
+Сохранить настройки\tSave settings
+Установлена последняя доступная версия.\tLatest available version installed.
+Проверяем наличие новой версии…\tChecking for updates…
+Загрузка обновления… \tDownloading update… 
+APK передан системному установщику.\tAPK passed to Android installer.
+Название\tName
+Прокси\tProxy
+Добавить\tAdd
+Удалить\tRemove
+Отмена\tCancel
+Ссылка скопирована\tLink copied
+Укажите название\tEnter a name
+Укажите ссылку или адрес\tEnter a URL or address
+Настройка будет удалена из текущего списка.\tThis entry will be removed from the current list.
+Можно добавить не больше 12 записей\tUp to 12 entries are allowed
+История проверок\tScan history
+История\tHistory
+Обновить историю\tRefresh history
+Загрузка…\tLoading…
+Сохранённые сканы\tSaved scans
+Динамика доступности\tAvailability changes
+Показать ещё 100 сканов\tShow 100 more scans
+Выгрузить лог\tExport log
+Сканов пока нет.\tNo scans yet.
+Сохранено сканов: \tSaved scans: 
+Неполный скан\tIncomplete scan
+Аналитика по категориям\tCategory analysis
+Диагностика сети и безопасности\tNetwork and security diagnostics
+Готово к проверке\tReady to scan
+Начать скан\tStart scan
+Отменить\tCancel
+Отменено пользователем\tCancelled by user
+Работают\tWorking
+Ограничены\tLimited
+Нет ответа\tNo response
+Не работают\tUnavailable
+Работает\tWorking
+Ограничен\tLimited
+Не работает\tUnavailable
+Результатов пока нет.\tNo results yet.
+В этой группе пока нет результатов.\tNo results in this group yet.
+←  Назад к аналитике\t← Back to analysis
+←  Назад к сервисам\t← Back to services
+Показать сервисы: \tShow services: 
+Показать ещё\tShow more
+Открыть категорию \tOpen category 
+Состояние интернета\tInternet state
+СОСТОЯНИЕ СЕТИ\tNETWORK STATUS
+Рекомендации  ⌄\tRecommendations  ⌄
+Методы обхода  ⌄\tAccess methods  ⌄
+Методы обхода\tAccess methods
+Доступность VPN-адресов\tVPN endpoint availability
+VPN-адреса для проверки не добавлены. Добавьте их в Settings → VPN tests.\tNo VPN endpoints configured. Add one in Settings → VPN tests.
+Проверяется отклик адреса или порта. Работа VPN-туннеля этим не подтверждается.\tThis checks an address or port response. It does not verify a VPN tunnel.
+HTTPS-адрес доступен\tHTTPS endpoint available
+HTTP-ошибка или редирект\tHTTP error or redirect
+TCP-порт отвечает\tTCP port responded
+Только DNS\tDNS only
+Доступность не подтверждена\tReachability unverified
+VPN-адреса для проверки не добавлены.\tNo VPN endpoints have been added for testing.
+Большинство VPN-адресов не подтвердили доступность. \tMost VPN endpoints could not be verified. 
+ адресов ответили по HTTPS или TCP. \t endpoints responded over HTTPS or TCP. 
+Системный VPN не обнаружен; ответ адреса не подтверждает работу туннеля или ключа.\tNo system VPN detected; an endpoint response does not verify the tunnel or key.
+HTTPS-адрес ответил успешно. Это не подтверждает работу VPN-туннеля.\tThe HTTPS endpoint responded successfully. This does not verify the VPN tunnel.
+HTTPS-адрес ответил HTTP \tThe HTTPS endpoint returned HTTP 
+; доступность ресурса не подтверждена.\t; resource availability is unverified.
+Ответил хотя бы один настроенный VPN-адрес или адрес подписки. Это не доказывает доступность VPN-сервиса или работу туннеля.\tAt least one configured VPN endpoint or subscription URL responded. This does not prove the VPN service or tunnel works.
+Интерфейс результатов\tResults interface
+Обновить\tRefresh
+Сохранение отчёта\tSaving report
+Автосохранение JSON\tAuto-save JSON
+Автосохранение не удалось. Сохраните лог кнопкой.\tAuto-save failed. Save the log manually.
+Радиоснимок\tRadio snapshot
+Снимок Wi-Fi, модема и сетей\tWi-Fi, modem and network snapshot
+Снимок сотовых вышек, Wi-Fi и Bluetooth\tCell, Wi-Fi and Bluetooth snapshot
+Радиоснимок: подготовка\tPreparing radio snapshot
+Радиоснимок готов: \tRadio snapshot ready: 
+Снимаем вышки, Wi‑Fi и Bluetooth…\tObserving Cell, Wi-Fi and Bluetooth…
+Снимаем…\tObserving…
+Радио\tRadio
+Навигация\tNavigation
+График\tGraph
+Список\tList
+Поиск по имени или MAC\tSearch by name or MAC
+Поиск радиоустройств\tSearch radio devices
+Ожидание измерений\tWaiting for measurements
+Оператор, технология или Cell ID\tOperator, technology or Cell ID
+Уровень\tSignal
+Частота\tFrequency
+Карта сот\tCell map
+Нет наблюдений по выбранному фильтру\tNo observations match this filter
+В этой области несколько точек\tMultiple observations in this area
+Подробности измерения\tMeasurement details
+Наблюдается\tObserved
+Подключено\tConnected
+Обслуживающая сота\tServing cell
+Последнее наблюдение устарело\tLast observation is stale
+Протокол\tProtocol
+Технология\tTechnology
+Оператор\tOperator
+Защита\tSecurity
+Ширина\tWidth
+Источник\tSource
+Возраст: \tAge: 
+неизвестен\tunknown
+не сообщён\tnot reported
+Время ОС\tOS time
+Диапазоны\tBands
+Сопряжено\tPaired
+Допускает подключение\tConnectable
+Сервисы UUID\tService UUIDs
+Основной PHY (код Android)\tPrimary PHY (Android code)
+Вторичный PHY (код Android)\tSecondary PHY (Android code)
+Ожидание GPS\tWaiting for GPS
+Ожидание fix\tWaiting for fix
+Нет fix (NMEA)\tNo fix (NMEA)
+Fix · 2D/3D не сообщён\tFix · dimension not reported
+Небосвод\tSky view
+Система или номер спутника\tSystem or satellite number
+Спутники не получены или скрыты фильтром\tNo satellites received or they are hidden by the filter
+Свежие данные спутника больше не доступны\tRecent satellite data is no longer available
+Используется в решении\tUsed in fix
+Используется при расчёте координат\tUsed to compute position
+Наблюдается приёмником\tSeen by receiver
+Виден\tVisible
+Система\tSystem
+Несущая\tCarrier
+Азимут\tAzimuth
+высота\televation
+Эфемериды\tEphemeris
+альманах\talmanac
+Горизонтальная точность\tHorizontal accuracy
+Вертикальная точность\tVertical accuracy
+Высота над эллипсоидом\tEllipsoid altitude
+Высота над уровнем моря\tMean sea level altitude
+Скорость\tSpeed
+Курс движения\tCourse
+ТЕСТОВОЕ местоположение от Android\tMock location from Android
+Карта недоступна: ошибка загрузки\tMap unavailable: load failed
+Поиск наблюдаемых сот в OpenCellID…\tLooking up observed cells in OpenCellID…
+Укажите личный OpenCellID API key в Settings. Без ответа базы координаты сот неизвестны.\tEnter your personal OpenCellID API key in Settings. Without a database response, cell coordinates are unknown.
+Позиции из базы приблизительные; сигнал измерен телефоном. Зелёный контур — зарегистрированная сота.\tDatabase positions are approximate; the phone measured signal. A green outline marks the registered cell.
+Инструмент\tTool
+Инструменты\tTools
+Управление\tControl
+Сканер IP\tIP scanner
+Разрешения\tPermissions
+Все\tAll
+Неизвестно\tUnknown
+Управляйте доступом к наблюдениям Wi-Fi, Bluetooth, Cell и местоположения.\tManage access to Wi-Fi, Bluetooth, Cell and location observations.
+Начать мониторинг\tStart monitoring
+Остановить мониторинг\tStop monitoring
+Наблюдение\tRecording
+Скрытые устройства\tHidden devices
+Скрыть\tHide
+Показать\tShow
+  •  замеров: \t  •  samples: 
+  •  ответы менялись\t  •  responses varied
+ из \t of 
+ мс\t ms
+ наблюдений\t observations
+ не работают\t unavailable
+ новых недоступных\t newly unavailable
+ работают\t working
+ с\\n\t s\\n
+ сервисов  •  \t services  •  
+ этапов\t stages
+. Доступна \t. Available: 
+. Можно начать повторную проверку.\t. You can run another scan.
+. Удерживайте, чтобы скопировать ссылку.\t. Hold to copy the link.
+Bluetooth: принудительный протокол\tBluetooth: forced protocol
+CSV сохранены\tCSV files saved
+Cell ID, Wi-Fi и Bluetooth\tCell ID, Wi-Fi and Bluetooth
+GSM / LTE only и LTE bands\tGSM/LTE-only and LTE bands
+Wi-Fi: принудительный стандарт и диапазон\tWi-Fi: forced standard and band
+\\nЗамеров: \t\\nSamples: 
+\\nНедоступно через публичный Android API для обычного приложения\t\\nUnavailable through public Android APIs to ordinary apps
+\\nПоследний ответ: \t\\nLast response: 
+Анализ фонового трафика приложений\tBackground app traffic analysis
+Без разрешений\tWithout permissions
+Выберите хотя бы один модуль\tSelect at least one module
+Далее\tNext
+Для обновления Android попросит разрешить установку приложений из этого источника один раз.\tAndroid will ask once for permission to install apps from this source.
+Дополнительные проверки не завершились.\tAdditional checks did not finish.
+Доступно обновление\tUpdate available
+Доступны при текущих ограничениях\\n\\n\tAvailable under current restrictions\\n\\n
+Другая сеть\tOther network
+Запомнить\tSave baseline
+Лог отсутствует или повреждён\tLog missing or damaged
+Лог сохранён\tLog saved
+Логотип Lighthouse\tLighthouse logo
+Мобильная сеть\tMobile network
+Мониторинг не запущен: \tMonitoring did not start: 
+Начать\tStart
+Не обнаружено (эвристика)\tNot detected (heuristic)
+Не удалось открыть журнал ошибок\tCould not open error log
+Не удалось открыть настройки установки\tCould not open install settings
+Не удалось открыть установщик Android\tCould not open Android installer
+Не удалось показать часть аналитики. JSON-лог можно сохранить кнопкой.\tCould not display some analysis. You can save the JSON log.
+Не удалось сохранить лог\tCould not save log
+Не удалось сохранить эталон\tCould not save baseline
+Нет записанных журналов\tNo recorded logs
+Обычный уровень доступности\tNormal availability baseline
+Открыть настройки\tOpen settings
+Отчёт сохранён\tReport saved
+Ошибка экспорта: \tExport error: 
+Ошибка: \tError: 
+Ошибок пока не записано\tNo errors recorded yet
+Повторный снимок сетевого окружения\tRepeat network environment snapshot
+Показ результатов\tResults view
+Получен результат: \tResult received: 
+Получено ответов: \tResponses received: 
+Проверка DNS / TCP / HTTPS\tChecking DNS / TCP / HTTPS
+Проверка не завершена\tScan incomplete
+Проверка прокси и VPN\tChecking proxies and VPNs
+Проверка сервисов\tChecking services
+Разрешите установку\tAllow installation
+Разрешить\tAllow
+Ручной выбор базовой станции\tManual cell selection
+Системные настройки Bluetooth\tBluetooth system settings
+Системные настройки Wi-Fi\tWi-Fi system settings
+Системные настройки мобильной сети\tMobile network system settings
+Системные настройки недоступны\tSystem settings unavailable
+Сначала проверьте наличие обновлений\tCheck for updates first
+Снова доступны: \tAvailable again: 
+Сохранение архива сканов\tSaving scan archive
+Сохранение истории\tSaving history
+Сохранение обычного уровня\tSaving baseline
+Стали недоступны: \tBecame unavailable: 
+Установлена \tInstalled: 
+Что отслеживать?\tWhat to monitor?
+Экран недоступен на этом устройстве\tThis screen is unavailable on this device
+Эталон сохранён для следующих сканирований\tBaseline saved for future scans
+не получен\tnot received
+нет ответа\tno response
+. Удерживайте, чтобы скопировать ссылку.\t. Hold to copy the link.
+Language / Язык\tLanguage
+tcp://host:port или https://…\ttcp://host:port or https://…
+Доступна \tAvailable: 
+Русский\tRussian
+Токен Detector404 API\tDetector404 API token
+Токен API\tAPI token
+ · ошибка измерения: \t · measurement error: 
+ · подключено\t · connected
+ · частоты не сообщены ОС\t · frequencies not reported by Android
+ измерений. Для чтения всех устройств откройте список.\t measurements. Open List for all devices.
+ наблюдений · \t observations · 
+ свежих уровней\t recent levels
+К графику\tTo graph
+К списку\tTo list
+Центр канала 1, MHz\tChannel center 1, MHz
+Центр канала 2, MHz\tChannel center 2, MHz
+‹ К графику\t‹ Back to graph
+ · в решении \t · used in fix 
+ · видны \t · visible 
+ м (NMEA)\t m (NMEA)
+ м/с\t m/s
+ м\t m
+WGS84 · GPS_PROVIDER · возраст \tWGS84 · GPS_PROVIDER · age 
+ есть\t yes
+ нет\t no
+‹ Назад\t‹ Back
+ ограничены  ·  \t limited  ·  
+ работают  ·  \t working  ·  
+ | оценка OpenCellID\t | OpenCellID estimate
+ • нет подтверждённых координат: \t • no confirmed coordinates: 
+Закрыть\tClose
+Найдено: \tFound: 
+Не удалось загрузить часть карты\tCould not load part of the map
+Карта недоступна: проверьте интернет\tMap unavailable: check internet access
+dBm неизвестен\tdBm unknown
+Банкинг и платежи\tBanking and payments
+Государственные сервисы\tGovernment services
+Игровые сервисы\tGaming services
+Карты и навигация\tMaps and navigation
+Магазины и объявления\tShopping and classifieds
+Мониторинг доступности\tAvailability monitoring
+Нейросети\tAI services
+Поиск и знания\tSearch and reference
+Почта\tMail
+Работа и видеосвязь\tWork and video calls
+Разработка и инфраструктура\tDevelopment and infrastructure
+Социальные сети\tSocial networks
+Транспорт и путешествия\tTransport and travel
+Файлообменники и облака\tFile sharing and cloud
+DNS-серверы\tDNS servers
+Новые заблокированные\tNewly unavailable
+Банки и платёжная инфраструктура. Проверяется только доступность публичных узлов без входа в аккаунт и операций со средствами.\tBanks and payment infrastructure. Only public endpoints are checked, without login or transactions.
+Карты и навигационные веб-сервисы; работа GPS проверяется отдельно.\tMap and navigation websites; GPS is checked separately.
+Мессенджеры, веб-чаты и узлы доставки сообщений. Проверка сайта не гарантирует работу звонков и отправки сообщений.\tMessaging websites and delivery endpoints. A working website does not guarantee calls or messages.
+Независимые страницы состояния и сервисы наблюдения за доступностью.\tIndependent status pages and availability monitors.
+Новостные и информационные издания.\tNews and information websites.
+Облачные хранилища и файлообменники. Проверяется входной узел, а не загрузка личных файлов.\tCloud storage and file sharing. The entry point is checked, not personal file transfers.
+Поисковые системы, энциклопедии и справочные ресурсы.\tSearch engines, encyclopedias and reference sites.
+Публичные DNS-серверы. Измеряется разрешение тестового домена и время ответа.\tPublic DNS resolvers. A test domain lookup and response time are measured.
+Публичные веб-интерфейсы почтовых служб без доступа к переписке.\tPublic mail websites; no mailbox access.
+Публичные государственные порталы без авторизации и передачи персональных данных.\tPublic government portals without login or personal data.
+Рабочие платформы, видеосвязь и совместная работа.\tWork platforms, video calls and collaboration.
+Репозитории, облачная инфраструктура и инструменты разработки.\tRepositories, cloud infrastructure and developer tools.
+Сервисы этой категории и результаты их сетевой проверки.\tServices in this category and their network checks.
+Сервисы, которые были доступны в предыдущем полном скане этой сети, но не ответили сейчас.\tServices that answered in the previous complete scan of this network but did not answer now.
+Социальные сети и публичные веб-интерфейсы.\tSocial networks and public websites.
+Транспорт, авиакомпании, билеты и бронирование.\tTransport, airlines, tickets and bookings.
+Android пока не подтвердил полноценный доступ в интернет.\tAndroid has not confirmed full internet access yet.
+Есть признаки белых списков. Ниже перечислены сервисы, успешно ответившие в этой проверке.\tPossible allowlist behavior. Services that answered in this scan appear below.
+Есть проблемы\tProblems detected
+Серьёзный сбой\tMajor outage
+Не разрешились доменные имена: \tDomain names did not resolve: 
+Недостаточно завершённых замеров. Нельзя сделать вывод о доступности интернета.\tToo few completed measurements to assess internet access.
+Один неудачный ответ ещё не означает блокировку — важны повторные проверки и сравнение сетей.\tOne failed response does not establish blocking. Repeat the check and compare networks.
+После успешного DNS не установилось соединение: \tDNS succeeded but connection failed: 
+TCP работает, но защищённое HTTPS-соединение не завершилось: \tTCP works, but HTTPS did not complete: 
+Больше всего проблем: \tMost problems: 
+Быстрее всех ответил \tFastest response: 
+Между повторными замерами изменился результат у \tResults changed between passes for 
+Скан частичный: проверено \tPartial scan: checked 
+ сервисов. Это признак нестабильности; подробности каждого замера сохранены в логе.\t services. This suggests instability; each measurement is in the log.
+ сервисов; не все повторные замеры успели завершиться.\t services; some repeat measurements did not finish.
+. Возможна проблема DNS.\t. Possible DNS problem.
+. Возможна проблема TLS/SNI.\t. Possible TLS/SNI problem.
+\\n\\nПроверены веб-узлы, не отправка сообщений, звонки или передача файлов. Это не гарантирует работу всех функций приложения.\t\\n\\nWebsites were checked, not messages, calls or file transfers. This does not guarantee every app feature works.
+Данных недостаточно\tInsufficient data
+Интернет-сервисы недоступны\tInternet services unavailable
+Необычные ограничения\tUnusual restrictions
+Признаки белых списков\tPossible allowlist behavior
+Доступность близка к сохранённому обычному уровню. Привычные недоступные сервисы не повышают тревогу. Новых проблем: \tAvailability is close to the saved baseline. Known unavailable services do not increase concern. New issues: 
+Нужен завершённый скан с достаточным числом российских и зарубежных сервисов. Непроверенные узлы не считаются заблокированными.\tA complete scan with enough domestic and international services is needed. Unchecked endpoints are not counted as blocked.
+Обычный уровень этой сети ещё не был сохранён, поэтому необычность ограничений не определяется по одному скану. Текущий полный результат станет отправной точкой для последующих сравнений.\tNo baseline has been saved for this network, so a single scan cannot establish unusual restrictions. This complete result will be the baseline for future comparisons.
+Оценка без сохранённого эталона доступности.\tAssessment without a saved availability baseline.
+По сравнению с обычным уровнем появились проблемы у \tCompared with baseline, problems appeared for 
+ зарубежных сервисов. Это диагностическая гипотеза, а не подтверждение причины ограничения.\t international services. This is a diagnostic hypothesis, not a confirmed cause.
+ сопоставимых. Сбой сервиса и блокировка не различаются достоверно одним сканом.\t comparable. One scan cannot reliably distinguish an outage from blocking.
+ российских и \t domestic and 
+Признаки белых списков: доступны \tPossible allowlist behavior: available 
+IPv6-адрес получен не был. Сеть работает только через IPv4 или DNS не выдаёт AAAA.\tNo IPv6 address was obtained. The network may use only IPv4 or DNS may not return AAAA.
+IPv6 работает, подключение установлено за \tIPv6 works; connection established in 
+Защищённое соединение не установлено.\tSecure connection failed.
+Защищённое соединение установлено за \tSecure connection established in 
+Несуществующий адрес неожиданно разрешился. Возможна подмена DNS-ответов.\tA nonexistent address unexpectedly resolved. DNS responses may be modified.
+Подключение IPv6\tIPv6 connection
+Проверка подмены DNS\tDNS response modification check
+Проверку DNS не удалось завершить.\tDNS check did not finish.
+Расхождение с сетевым временем: \tDifference from network time: 
+Точность системного времени\tSystem clock accuracy
+Маршрутизация\tRouting
+Маршрут до Cloudflare DNS\tRoute to Cloudflare DNS
+Маршрут до Google\tRoute to Google
+Маршрут до Ozon\tRoute to Ozon
+Маршрут\tRoute
+Время\tTime
+Стабильность Cloudflare\tCloudflare stability
+Стабильность Google\tGoogle stability
+Стабильность Ozon\tOzon stability
+Стабильность\tStability
+Все попытки успешны. Средняя задержка \tAll attempts succeeded. Average latency 
+Потеряно попыток: \tFailed attempts: 
+Трассировка остановлена по тайм-ауту.\tTrace stopped at timeout.
+Трассировку выполнить не удалось.\tCould not run trace.
+Время скана истекло: сохранены выполненные замеры. Непроверенные сервисы не считаются заблокированными.\tScan time expired; completed measurements were saved. Unchecked services are not counted as blocked.
+Для экстренной связи используйте обычный звонок или SMS.\tFor emergency communication, use a normal call or SMS.
+Дополнительная диагностика сети\tAdditional network diagnostics
+Дополнительные проверки\tAdditional checks
+Ответили веб-узлы файлообменников: \tFile-sharing websites answered: 
+Отвечающие DNS-серверы: \tDNS servers that answered: 
+Повторите тест без VPN и с VPN, затем сравните два лога.\tRepeat the test with and without VPN, then compare the two logs.
+Подготовка отчёта\tPreparing report
+Похоже на режим белых списков: сохраните лог и сравните результат через другую сеть.\tPossible allowlist behavior: save the log and compare on another network.
+Предыдущие дополнительные проверки ещё завершаются.\tPrevious additional checks are still finishing.
+Проверьте Wi-Fi/мобильную сеть, перезапустите соединение и попробуйте другого оператора.\tCheck Wi-Fi/mobile access, reconnect and try another operator.
+Проверяйте законность средств обхода в вашей юрисдикции; используйте только доверенные приложения.\tCheck local law before using access tools; use only trusted apps.
+Публичные DNS-серверы не отвечают: возможна фильтрация UDP/TCP 53 или проблема сети.\tPublic DNS servers did not answer: UDP/TCP 53 may be filtered or the network may have a problem.
+Сервисы: проход \tServices: pass 
+Часть дополнительных проверок не завершилась вовремя; результаты сервисов сохранены.\tSome additional checks timed out; service results were saved.
+2ГИС\t2GIS
+Авиасейлс\tAviasales
+Авто.ру\tAuto.ru
+Альфа-Банк\tAlfa-Bank
+Аэрофлот\tAeroflot
+Ведомости\tVedomosti
+Википедия на русском\tRussian Wikipedia
+Газпромбанк\tGazprombank
+Госуслуги\tGosuslugi
+Детектор 404\tDetector404
+Дзен\tDzen
+Дром\tDrom
+ЕИС Закупки\tPublic procurement portal
+Иви\tIvi
+Интерфакс\tInterfax
+Кинопоиск\tKinopoisk
+Коммерсантъ\tKommersant
+Лента.ру\tLenta.ru
+М.Видео\tM.Video
+МИР\tMir
+МТС Банк\tMTS Bank
+Мегамаркет\tMegamarket
+Облако Mail.ru\tMail.ru Cloud
+Одноклассники\tOdnoklassniki
+Островок\tOstrovok
+ПСБ\tPSB
+Пикабу\tPikabu
+Победа\tPobeda
+Почта Банк\tPost Bank
+Правительство России\tRussian Government
+Президент России\tPresident of Russia
+РБК\tRBC
+РЖД\tRussian Railways
+РИА Новости\tRIA Novosti
+Райффайзен Банк\tRaiffeisen Bank
+Россельхозбанк\tRosselkhozbank
+Сбер\tSber
+Ситилинк\tCitilink
+Совкомбанк\tSovcombank
+Т-Банк\tT-Bank
+ТАСС\tTASS
+Туту\tTutu
+ФНС России\tFederal Tax Service
+Хабр\tHabr
+ЮMoney\tYooMoney
+Яндекс DNS\tYandex DNS
+Яндекс Диск\tYandex Disk
+Яндекс Карты\tYandex Maps
+Яндекс Маркет\tYandex Market
+Яндекс Музыка\tYandex Music
+Яндекс Почта\tYandex Mail
+Яндекс\tYandex
+Battle.net авторизация\tBattle.net authentication
+GOG авторизация\tGOG authentication
+Riot авторизация\tRiot authentication
+Xbox Live авторизация\tXbox Live authentication
+YouTube — видеосеть\tYouTube video delivery
+YouTube — изображения\tYouTube images
+YouTube — сайт\tYouTube website
+Telegram сайт\tTelegram website
+VK Видео\tVK Video
+Android пометил координаты как смоделированные.\tAndroid marked this location as mock.
+Интернет проверяется отдельно.\tInternet access is checked separately.
+ сот, зарегистрированных: \t cells, registered: 
+, сигнал \t, signal 
+. Активная сеть: \t. Active network: 
+; точность не предоставлена\t; accuracy not provided
+; точность около \t; accuracy about 
+Android подтвердил интернет.\tAndroid confirmed internet access.
+BSSID скрыт/недоступен\tBSSID hidden or unavailable
+Bluetooth-модем\tBluetooth radio
+Cell / Wi-Fi по данным Android\tCell / Wi-Fi according to Android
+ConnectivityManager недоступен\tConnectivityManager unavailable
+GPS включён; проверяем доступность координат.\tGPS is enabled; checking for coordinates.
+GPS выключен, доступно приблизительное положение по сети.\tGPS is off; approximate network location is available.
+GPS и положение\tGPS and location
+GPS и сетевое определение положения выключены.\tGPS and network location are off.
+LocationManager недоступен\tLocationManager unavailable
+PHY-скорость соединения, не измерение скорости интернета\tPHY link speed, not an internet speed measurement
+SSID скрыт/недоступен\tSSID hidden or unavailable
+TelephonyManager недоступен\tTelephonyManager unavailable
+Wi-Fi включён, подключение к точке не подтверждено.\tWi-Fi is on; connection to an access point is not confirmed.
+Wi-Fi выключен; приложение не включает его самостоятельно.\tWi-Fi is off; the app does not turn it on.
+Wi-Fi подключён: \tWi-Fi connected: 
+Видимых Android сетей: \tNetworks visible to Android: 
+Геопозиция\tLocation
+Для состояния SIM/передачи данных не разрешён доступ к телефону\tPhone access is required for SIM/data state
+Другой транспорт\tOther transport
+Интернет системой не подтверждён.\tAndroid has not confirmed internet access.
+Модем показывает \tModem reports 
+Наблюдаемая соседняя сота\tObserved neighboring cell
+Недостаточно полей для поиска: нужны MCC, MNC, TAC/LAC и Cell ID.\tInsufficient fields for lookup: MCC, MNC, TAC/LAC and Cell ID are required.
+Обзор Wi-Fi эфира\tWi-Fi spectrum overview
+Обслуживающая/зарегистрированная сота\tServing/registered cell
+Окружающие точки Wi-Fi\tNearby Wi-Fi access points
+Подключения Android\tAndroid connections
+Подключения\tConnections
+Положение по сети\tNetwork location
+Положение\tPosition
+Сети Android\tAndroid networks
+Службы геопозиции\tLocation services
+Сотовая сеть и Cell ID\tCell network and Cell ID
+Сотовая связь\tCellular radio
+Сотовая сеть\tCell network
+Соты и Cell ID\tCells and Cell ID
+Спутниковое положение\tSatellite location
+Текущее Wi-Fi соединение\tCurrent Wi-Fi connection
+Телефония не поддерживается устройством\tThis device does not support telephony
+Точки Wi-Fi\tWi-Fi access points
+недоступен\tunavailable
+APK обновления слишком большой\tUpdate APK is too large
+APK последнего релиза недоступен.\tLatest release APK is unavailable.
+Загрузка APK завершилась неполностью\tAPK download did not complete
+Контрольная сумма APK не совпала\tAPK checksum mismatch
+Не удалось подготовить загрузку\tCould not prepare download
+Не удалось проверить обновления\tCould not check for updates
+Небезопасный адрес сервера обновлений\tUnsafe update server address
+Неверный размер APK\tIncorrect APK size
+Обновление недоступно.\tUpdate unavailable.
+Параметры приватного репозитория не заданы в этой сборке.\tPrivate repository settings are absent in this build.
+Подпись APK не совпадает с установленным приложением\tAPK signature differs from installed app
+Сервер обновлений вернул неверное перенаправление\tUpdate server returned an invalid redirect
+Сервер обновлений вернул ошибку\tUpdate server returned an error
+Сервер обновлений недоступен\tUpdate server unavailable
+Файл не является APK Lighthouse\tFile is not a Lighthouse APK
+новая версия\tnew version
+ Б\t B
+%.1f ГБ\t%.1f GB
+%.1f КБ\t%.1f KB
+%.1f МБ\t%.1f MB
+, получено \t, received 
+. Фоновый трафик нормален для синхронизации и не доказывает наличие шпионского ПО.\t. Background traffic is normal for synchronization and does not prove spyware.
+Android не предоставил статистику приложений.\tAndroid did not provide app usage statistics.
+Большой объём и чувствительные разрешения требуют ручной проверки.\tLarge traffic volume and sensitive permissions warrant manual review.
+В фоне отправлено \tSent in background: 
+Доступ к статистике не выдан. Android не позволяет Lighthouse видеть процессы других приложений без отдельного системного разрешения.\tUsage access is not granted. Android does not let Lighthouse inspect other apps without special system access.
+Найдено приложений или системных UID с исходящим трафиком: \tApps or system UIDs with outgoing traffic: 
+Передача данных приложениями за 24 часа\tApp data transfer in the last 24 hours
+Сам факт трафика не означает слежку.\tTraffic alone does not imply surveillance.
+Сетевая активность приложений\tApp network activity
+Системный UID \tSystem UID 
+ • экран выключен: Android приостанавливает общий BLE-поиск; свежие BLE-данные не гарантируются\t • screen off: Android pauses unfiltered BLE scanning; fresh BLE observations are not guaranteed
+BLE + Classic • BW, частота пакета и шифрование Android не раскрывает\tBLE + Classic • Android does not expose packet bandwidth, frequency or encryption
+BLE: ошибка Android \tBLE: Android error 
+Bluetooth выключен\tBluetooth off
+Без имени\tUnnamed
+Модуль Bluetooth недоступен\tBluetooth radio unavailable
+Нет разрешения Bluetooth\tBluetooth permission missing
+GNSS-приёмник недоступен\tGNSS receiver unavailable
+GPS выключен в настройках устройства\tGPS disabled in device settings
+NMEA недоступен: тип 2D/3D не определяется\tNMEA unavailable: 2D/3D fix type cannot be determined
+Включите геолокацию / GPS\tEnable location / GPS
+ОС не предоставила список спутников\tAndroid did not provide a satellite list
+Mothman не найден в локальной сети\tMothman not found on local network
+Mothman недоступен\tMothman unavailable
+Выпуск изменился: проверьте обновления повторно\tRelease changed; check again
+Неверный URL Mothman\tInvalid Mothman URL
+Доступен хотя бы один настроенный VPN-сервер. Включите профиль системно и повторите скан: доступность узла ещё не доказывает работу туннеля.\tAt least one configured VPN server is reachable. Enable the profile in system settings and scan again; server reachability does not prove the tunnel works.
+Официальные источники: https://github.com/bol-van/zapret, https://github.com/ValdikSS/GoodbyeDPI, https://github.com/dovecoteescapee/ByeDPIAndroid, https://github.com/amnezia-vpn/amnezia-client, https://github.com/outline-vpn/outline-client и https://torproject.org.\tOfficial sources: https://github.com/bol-van/zapret, https://github.com/ValdikSS/GoodbyeDPI, https://github.com/dovecoteescapee/ByeDPIAndroid, https://github.com/amnezia-vpn/amnezia-client, https://github.com/outline-vpn/outline-client and https://torproject.org.
+; это не проверка содержания сайта\t; site contents were not checked
+DNS не вернул адреса этой версии IP\tDNS returned no addresses for this IP version
+DNS ответил ошибкой или неполным сообщением; транспорт доступен.\tDNS returned an error or incomplete message; transport is reachable.
+DNS: UDP и TCP\tDNS: UDP and TCP
+IPv4 и IPv6\tIPv4 and IPv6
+Версии TLS\tTLS versions
+Защищённый DNS\tEncrypted DNS
+Интерфейсы\tInterfaces
+Нет TCP-ответов: \tNo TCP responses: 
+Ответ получен; подробности в замере.\tResponse received; see the measurement.
+Повторные замеры\tRepeat measurements
+Проверка не дала успешного ответа; это не доказывает блокировку.\tThe check did not receive a successful response; this does not prove blocking.
+Серия ping / \tPing series / 
+Сетевые интерфейсы\tNetwork interfaces
+Публичная VPN-подписка\tPublic VPN subscription
+проверенные\tverified
+белые списки\tallowlists
+Публичный MTProto\tPublic MTProto
+Публичный OpenVPN-каталог\tPublic OpenVPN catalog
+. Сопоставьте их с локальными измерениями.\t. Compare them with local measurements.
+API Detector404 не настроен. Добавьте личный токен в настройках; без него внешние данные не влияют на аналитику.\tDetector404 API is not configured. Add your personal token in Settings; without it, external data does not affect analysis.
+Detector404 API ответил кодом HTTP \tDetector404 API returned HTTP 
+Detector404 вернул ответ без подтверждения успеха.\tDetector404 returned a response without confirming success.
+Detector404 не сообщил активных событий по настроенным порогам.\tDetector404 reported no active events at the configured thresholds.
+Detector404 отклонил токен или доступ к API.\tDetector404 rejected the token or API access.
+Detector404 сообщает активных событий: \tDetector404 active events: 
+Токен Detector404 имеет недопустимый формат.\tDetector404 token format is invalid.
+. ICMP — отдельная проверка.\t. ICMP is a separate check.
+. Загрузка файлов не проверялась.\t. File downloads were not checked.
+. Отправка сообщений не проверялась.\t. Sending messages was not checked.
+DNS TCP/53: ответ; UDP/53: \tDNS TCP/53: response; UDP/53: 
+Диагностика\tDiagnostics
+Манифест слишком большой\tManifest is too large
+Неверная escape-последовательность\tInvalid escape sequence
+Неверная контрольная сумма/размер\tIncorrect checksum or size
+Неверная семантическая версия\tInvalid semantic version
+Неверный Unicode\tInvalid Unicode
+Неверный prerelease SemVer\tInvalid SemVer prerelease
+Неверный размер\tInvalid size
+Недопустимый локальный адрес Mothman\tInvalid local Mothman address
+Недопустимый ресурс обновления\tInvalid update resource
+Незакрытая строка JSON\tUnterminated JSON string
+Неизвестный формат обновления\tUnknown update format
+Размер или SHA-256 не совпадает\tSize or SHA-256 mismatch
+Размер пакета превышен\tPackage size limit exceeded
+Настройка сохранена\tConfiguration saved
+Нельзя использовать неполный скан, отсутствие интернета или признаки белых списков как обычный уровень.\tAn incomplete scan, no internet, or allowlist behavior cannot be used as the normal baseline.
+ дн.\t days
+ попытки подключения завершились без ответа.\t connection attempts received no response.
+ сетевых переходов.\t network transitions.
+. Средняя задержка \t. Average latency 
+Все \tAll 
+ доступны\t available
+: DNS-запрос за \t: DNS query in 
+Лог отсутствует\tLog missing
+Появился частичный ответ\tPartial response appeared
+Снова доступен\tAvailable again
+Стал ограниченно доступен\tBecame limited
+ВТБ\tVTB
+Итог проверки прокси Telegram\tTelegram proxy check result
+Узел MTProto-прокси доступен по TCP. Проверка секрета требует полного протокола Telegram и не выполняется.\tThe MTProto proxy node is reachable over TCP. Verifying its secret requires the full Telegram protocol and is not performed.
+VPN-сервер доступен по TCP. Работа туннеля и ключа проверяется после включения VPN в системе.\tVPN server is reachable over TCP. Tunnel and key are checked only after enabling VPN in system settings.
+VPN-сервер не прошёл проверку: \tVPN server check failed: 
+VPN-серверы для проверки не добавлены.\tNo VPN servers have been added for testing.
+Адрес VPN разрешается через DNS, но UDP-туннель и ключ нельзя подтвердить без подключения.\tVPN host resolves in DNS, but the UDP tunnel and key cannot be verified without connecting.
+Итог проверки VPN\tVPN check result
+Массовая недоступность VPN-узлов: \tMany VPN nodes unavailable: 
+Ни один настроенный VPN-сервер не ответил.\tNo configured VPN server responded.
+Проверочный HTTPS-адрес VPN доступен. Это не включает VPN автоматически.\tVPN test HTTPS endpoint is reachable. This does not enable the VPN.
+Системный VPN активен; результаты сервисов относятся к текущему туннелю.\tSystem VPN is active; service results apply to the current tunnel.
+Системный VPN не обнаружен; доступность сервера не подтверждает работу туннеля или ключа.\tNo system VPN detected; server reachability does not confirm the tunnel or key.
+Запущенный Zapret не обнаружен. Проверка не запускала и не изменяла сторонние программы.\tNo running Zapret was detected. This check did not start or change third-party software.
+Zapret обнаружен, но контрольные узлы YouTube и Discord не ответили. Текущая стратегия, вероятно, не помогает этой сети.\tZapret was detected, but YouTube and Discord test endpoints did not answer. The current strategy may not help this network.
+Zapret обнаружен, но контрольные узлы отвечают только частично. Возможно, стратегия подходит не всем протоколам или доменам.\tZapret was detected, but only some test endpoints answered. The strategy may not cover all protocols or domains.
+Zapret обнаружен; все контрольные узлы YouTube и Discord отвечают. Это косвенный признак работоспособности текущей стратегии.\tZapret was detected and all YouTube and Discord test endpoints answered. This is indirect evidence that the strategy works.
+Запуск приложения\tApp startup
+Необработанная ошибка / \tUnhandled error / 
+Изменение сети\tNetwork change
+Появилась системная сеть\tSystem network appeared
+События во время скана\tEvents during scan
+Не удалось создать журнал\tCould not create log
+. Откройте приложение для установки.\t. Open the app to install.
