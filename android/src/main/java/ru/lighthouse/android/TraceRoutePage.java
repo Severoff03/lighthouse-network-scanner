@@ -21,9 +21,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
-/** Runs a real traceroute utility. Never infers hops from ordinary ping responses. */
+/** Runs a real traceroute/tracepath utility. Never infers hops from ordinary ping responses. */
 final class TraceRoutePage extends LinearLayout {
     private static final Pattern HOP = Pattern.compile("^\\s*\\d+\\s+.+");
+    private static final Pattern TRACEPATH_HOP = Pattern.compile("^\\s*\\d+\\??:\\s+(?:[0-9A-Fa-f:.]+|no reply)(?:\\s+.*)?$");
     private final Activity activity;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private final int ink, muted, surface;
@@ -44,7 +45,7 @@ final class TraceRoutePage extends LinearLayout {
         setOrientation(VERTICAL); setPadding(dp(16),dp(14),dp(16),dp(8));
         addView(button(UiLanguage.isRussian()?"← Инструменты":"← Tools",back),new LayoutParams(-1,dp(46)));
         addView(text("Trace",23,ink));
-        addView(text("Route to an IP address or URL. Only replies from a real traceroute utility are shown; * means no reply. A root-capable traceroute utility may be required on this device.",12,muted));
+        addView(text("Route to an IP address or URL. Traceroute and tracepath are tried without root first. Only measured hops are shown; * means no reply.",12,muted));
         target=new EditText(context);target.setSingleLine(true);target.setTextColor(ink);target.setHintTextColor(muted);
         target.setHint(UiLanguage.text("IP address or URL"));target.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_URI);
         addView(target,new LayoutParams(-1,dp(52)));
@@ -105,11 +106,18 @@ final class TraceRoutePage extends LinearLayout {
                     withCommand("/system/xbin/busybox","traceroute",args),withCommand("traceroute",args)};
             for(String[] command:candidates){
                 if(cancelled)return;
-                if(runTraceroute(command))return;
+                if(runTraceroute(command,false))return;
+            }
+            if(!useRoot){
+                String[] tracepathArgs={"-n","-m","30",ip};
+                for(String[] command:new String[][]{withCommand("/system/bin/tracepath",tracepathArgs),withCommand("tracepath",tracepathArgs)}){
+                    if(cancelled)return;
+                    if(runTraceroute(command,true))return;
+                }
             }
             postIfActive(()->{state.setText(UiLanguage.text(useRoot
                 ?"Root traceroute is unavailable. Grant root access and install a traceroute-capable binary."
-                :"Traceroute is unavailable without root on this device. Install Pixel Root and a traceroute-capable binary, then tap Use root traceroute."));
+                :"No usable traceroute or tracepath utility was found without root. Root is optional if a compatible unprivileged utility is available."));
                 rootAction.setVisibility(VISIBLE);
             });
         }catch(InterruptedException ignored){Thread.currentThread().interrupt();}
@@ -121,7 +129,7 @@ final class TraceRoutePage extends LinearLayout {
     }
     private static String[] withCommand(String binary,String[] args){String[] command=new String[args.length+1];command[0]=binary;System.arraycopy(args,0,command,1,args.length);return command;}
     private static String[] withCommand(String binary,String subcommand,String[] args){String[] command=new String[args.length+2];command[0]=binary;command[1]=subcommand;System.arraycopy(args,0,command,2,args.length);return command;}
-    private boolean runTraceroute(String[] command) throws InterruptedException,IOException {
+    private boolean runTraceroute(String[] command,boolean tracepath) throws InterruptedException,IOException {
         final Process running;
         try{running=new ProcessBuilder(command).redirectErrorStream(true).start();}
         catch(IOException missing){return false;}
@@ -129,7 +137,7 @@ final class TraceRoutePage extends LinearLayout {
         try(BufferedReader reader=new BufferedReader(new InputStreamReader(running.getInputStream(),StandardCharsets.UTF_8))){
             String line;
             while(!cancelled&&(line=reader.readLine())!=null){
-                if(HOP.matcher(line).matches()){
+                if((tracepath?TRACEPATH_HOP:HOP).matcher(line).matches()){
                     observations++;String measured=line;
                     postIfActive(()->hops.addView(text(measured,15,measured.contains("*")?muted:ink)));
                 }else if(error.length()<1000)error.append(line).append(' ');
@@ -138,7 +146,7 @@ final class TraceRoutePage extends LinearLayout {
         }catch(IOException failure){if(!cancelled)error.append(failure.getMessage());}
         finally{running.destroy();process=null;}
         if(cancelled)return true;
-        if(observations>0){postIfActive(()->state.setText(UiLanguage.text("Trace complete. Asterisks indicate routers that did not answer.")));return true;}
+        if(observations>0){postIfActive(()->state.setText(UiLanguage.text("Trace finished. Missing replies do not prove that a hop is absent.")));return true;}
         if("su".equals(command[0])&&error.toString().toLowerCase(java.util.Locale.ROOT).matches(".*(denied|not granted|not allowed).*"))
             throw new IOException("Root access was denied");
         return false;

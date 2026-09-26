@@ -10,12 +10,12 @@ import android.widget.TextView;
 
 /** Optional terminal presentation. Measurements and user-entered values are never altered. */
 final class TerminalTheme {
-    static final int BACKGROUND = Color.rgb(3, 10, 14);
-    static final int SURFACE = Color.rgb(9, 25, 30);
-    static final int TEXT = Color.rgb(185, 245, 227);
-    static final int MUTED = Color.rgb(111, 170, 160);
-    static final int ACCENT = Color.rgb(46, 225, 191);
-    static final int BORDER = Color.rgb(38, 106, 105);
+    static final int BACKGROUND = Color.rgb(4, 9, 30);
+    static final int SURFACE = Color.rgb(10, 22, 53);
+    static final int TEXT = Color.rgb(220, 236, 255);
+    static final int MUTED = Color.rgb(141, 173, 211);
+    static final int ACCENT = Color.rgb(64, 205, 239);
+    static final int BORDER = Color.rgb(49, 86, 139);
     private TerminalTheme() {}
 
     static boolean enabled(Context context) {

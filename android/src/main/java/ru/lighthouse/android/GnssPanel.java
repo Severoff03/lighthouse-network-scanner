@@ -14,13 +14,13 @@ import java.util.*;
 
 /** Sky/status UI based on measured GnssStatus values, with inline satellite details. */
 final class GnssPanel extends LinearLayout {
-    private final Activity activity;private final GnssSurvey survey;private final int foreground,muted,surface,edge;private final boolean terminal;
+    private final Activity activity;private final GnssSurvey survey;private final int foreground,muted,surface,edge;private final boolean terminal,dark;
     private final LinearLayout body,sorts;private final ScrollView scroll;private final EditText search;private final TextView status;
     private final Button graphButton,skyButton,positionButton,listButton,levelSort;private final Sky sky;private final SignalBars bars;private final TextView fixBadge,coordinates;
     private final SensorManager sensors;private final Sensor rotationVector,accelerationSensor;
     private final Set<Integer> hiddenSystems=new HashSet<>();
     private final Map<String,float[]> smoothSky=new HashMap<>();
-    private boolean active,ascending,filterOpen,sensorActive,headingKnown;private int page,coordinateFormat;private float heading;private float acceleration=Float.NaN;
+    private boolean active,ascending,sensorActive,headingKnown;private int page,coordinateFormat;private float heading;private float acceleration=Float.NaN;
     private GnssSurvey.Satellite detailSnapshot;
     private final SensorEventListener orientation=new SensorEventListener(){
         public void onSensorChanged(SensorEvent event){
@@ -35,7 +35,7 @@ final class GnssPanel extends LinearLayout {
     };
     private final Map<String,Double> preferredCarrier=new HashMap<>();
     GnssPanel(Activity activity,boolean dark){
-        super(activity);this.activity=activity;survey=new GnssSurvey(activity);terminal=TerminalTheme.enabled(activity);foreground=terminal?TerminalTheme.TEXT:dark?0xffe4e8ed:0xff192028;muted=terminal?TerminalTheme.MUTED:dark?0xff97a2ae:0xff546370;surface=terminal?TerminalTheme.SURFACE:dark?0xff161922:Color.WHITE;edge=terminal?TerminalTheme.BORDER:dark?0xff35404d:0xffd2dae2;setOrientation(VERTICAL);
+        super(activity);this.activity=activity;this.dark=dark;survey=new GnssSurvey(activity);terminal=TerminalTheme.enabled(activity);foreground=terminal?TerminalTheme.TEXT:dark?0xffe4e8ed:0xff192028;muted=terminal?TerminalTheme.MUTED:dark?0xff97a2ae:0xff546370;surface=terminal?TerminalTheme.SURFACE:dark?0xff161922:Color.WHITE;edge=terminal?TerminalTheme.BORDER:dark?0xff35404d:0xffd2dae2;setOrientation(VERTICAL);
         sensors=activity.getSystemService(SensorManager.class);rotationVector=sensors==null?null:sensors.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);accelerationSensor=sensors==null?null:sensors.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         coordinateFormat=activity.getSharedPreferences("settings",Context.MODE_PRIVATE).getInt("coordinateFormat",0);
         search=new EditText(activity);search.setSingleLine(true);search.setTextColor(foreground);search.setHintTextColor(muted);search.setTextSize(14);search.setHint(local("System or satellite number","Система или номер спутника"));
@@ -53,8 +53,8 @@ final class GnssPanel extends LinearLayout {
     }
     void setActive(boolean value){if(active==value){if(active)survey.start();return;}active=value;if(value)survey.start();else survey.stop();syncSensor();if(value)refresh();}
     @Override protected void onDetachedFromWindow(){setActive(false);super.onDetachedFromWindow();}
-    void showHome(){page=0;detailSnapshot=null;filterOpen=false;scroll.scrollTo(0,0);syncSensor();refresh();}
-    private void switchPage(int value){page=value;detailSnapshot=null;filterOpen=false;scroll.scrollTo(0,0);syncSensor();refresh();}
+    void showHome(){page=0;detailSnapshot=null;scroll.scrollTo(0,0);syncSensor();refresh();}
+    private void switchPage(int value){page=value;detailSnapshot=null;scroll.scrollTo(0,0);syncSensor();refresh();}
     private void syncSensor(){boolean needed=active&&(rotationVector!=null||accelerationSensor!=null);if(needed&&!sensorActive){if(rotationVector!=null)sensors.registerListener(orientation,rotationVector,SensorManager.SENSOR_DELAY_UI);if(accelerationSensor!=null)sensors.registerListener(orientation,accelerationSensor,SensorManager.SENSOR_DELAY_UI);sensorActive=true;}else if(!needed&&sensorActive){sensors.unregisterListener(orientation);sensorActive=false;headingKnown=false;heading=0;acceleration=Float.NaN;}}
     private static float shortestAngle(float difference){return (difference+540)%360-180;}
     void refresh(){
@@ -96,8 +96,6 @@ final class GnssPanel extends LinearLayout {
             sky.values=shown;if(sky.getParent() instanceof ViewGroup)((ViewGroup)sky.getParent()).removeView(sky);
             body.addView(text(headingKnown?local("Phone-up sky · tap empty area to filter","Небосвод по телефону · нажмите на пустое место для фильтра"):local("North-up sky · tap empty area to filter","Север сверху · нажмите на пустое место для фильтра"),13));
             body.addView(sky,new LayoutParams(-1,dp(345)));sky.invalidate();
-            if(filterOpen){LinearLayout filters=card();filters.addView(text(local("Constellations","Системы спутников"),14));String[] names={"GPS","GLONASS","Galileo","BeiDou","QZSS","SBAS","NavIC"};int[] ids={1,3,6,5,4,2,7};
-                for(int i=0;i<names.length;i++){int id=ids[i];filters.addView(button((hiddenSystems.contains(id)?"○  ":"●  ")+names[i],()->{if(!hiddenSystems.add(id))hiddenSystems.remove(id);body.removeAllViews();refresh();}),new LayoutParams(-1,dp(40)));}body.addView(filters);}
             body.addView(new SignalLegend());if(rotationVector==null)body.addView(text(local("Orientation sensor unavailable; north stays at the top.","Датчик ориентации недоступен; север остаётся сверху."),12));
         }else if(page==2){
             LinearLayout formats=new LinearLayout(activity);String[] names={local("Decimal","Десятичный"),"DMS",local("Deg Min","Град. мин.")};for(int i=0;i<names.length;i++){int chosen=i;Button choice=button(names[i],()->{coordinateFormat=chosen;activity.getSharedPreferences("settings",Context.MODE_PRIVATE).edit().putInt("coordinateFormat",chosen).apply();refresh();});choice.setAlpha(coordinateFormat==i?1f:.55f);formats.addView(choice,new LayoutParams(0,dp(42),1));}body.addView(formats);
@@ -123,6 +121,13 @@ final class GnssPanel extends LinearLayout {
     }
     private void satelliteDetails(GnssSurvey.Satellite s){LinearLayout card=card();TextView heading=text(s.title(),24);heading.setTextColor(signalColor(s.cn0));card.addView(heading);card.addView(text(format(s.cn0)+" dB-Hz",26));card.addView(text(s.used?local("Used in position fix","Участвует в определении координат"):local("Visible, not used in fix","Видим, но не участвует в фиксе"),16));card.addView(text(local("System  ","Система  ")+GnssSurvey.constellationName(s.constellation),16));card.addView(text("SVID  "+s.svid,17));card.addView(text(local("Carrier  ","Несущая  ")+(Double.isFinite(s.frequency)?format(s.frequency)+" MHz":local("not reported","нет данных")),15));card.addView(text(local("Azimuth  ","Азимут  ")+format(s.azimuth)+"° · "+local("Elevation  ","Высота  ")+format(s.elevation)+"°",14));card.addView(text(local("Ephemeris  ","Эфемериды  ")+(s.ephemeris?local("yes","да"):local("no","нет"))+" · "+local("Almanac  ","Альманах  ")+(s.almanac?local("yes","да"):local("no","нет")),12));if(Double.isFinite(s.baseband))card.addView(text(local("Baseband C/N₀  ","Базовый C/N₀  ")+format(s.baseband)+" dB-Hz",12));body.addView(card);}
     private void open(GnssSurvey.Satellite s){detailSnapshot=s;body.removeAllViews();body.addView(button(local("‹ Back","‹ Назад"),()->{detailSnapshot=null;refresh();}));satelliteDetails(s);scroll.scrollTo(0,0);}
+    private void showConstellationFilter(){
+        String[] names={"GPS","GLONASS","Galileo","BeiDou","QZSS","SBAS","NavIC"};int[] ids={1,3,6,5,4,2,7};boolean[] chosen=new boolean[ids.length];
+        for(int i=0;i<ids.length;i++)chosen[i]=!hiddenSystems.contains(ids[i]);
+        ChoiceOverlay.show(activity,sky,dark,local("Constellations","Системы спутников"),names,chosen,false,index->{
+            if(!hiddenSystems.add(ids[index]))hiddenSystems.remove(ids[index]);chosen[index]=!hiddenSystems.contains(ids[index]);refresh();
+        });
+    }
     private int signalColor(float cn0){if(!Float.isFinite(cn0)||cn0<0)return muted;return Color.HSVToColor(new float[]{Math.min(120f,Math.max(0f,cn0/45f*120f)),.83f,.92f});}
     private String coordinate(double value,boolean latitude){String hemisphere=latitude?(value<0?"S":"N"):(value<0?"W":"E");double magnitude=Math.abs(value);if(coordinateFormat==0)return String.format(Locale.ROOT,"%.6f° %s",magnitude,hemisphere);int degrees=(int)Math.floor(magnitude);double minutes=(magnitude-degrees)*60;if(coordinateFormat==2)return String.format(Locale.ROOT,"%d° %.4f′ %s",degrees,minutes,hemisphere);int whole=(int)Math.floor(minutes);return String.format(Locale.ROOT,"%d° %d′ %.2f″ %s",degrees,whole,(minutes-whole)*60,hemisphere);}
     private String format(double n){return Double.isFinite(n)?String.format(Locale.ROOT,"%.1f",n):"—";}
@@ -140,7 +145,6 @@ final class GnssPanel extends LinearLayout {
             if(values.isEmpty())return;float slot=(right-left)/values.size();
             for(int i=0;i<values.size();i++){GnssSurvey.Satellite satellite=values.get(i);if(!Float.isFinite(satellite.cn0)||satellite.cn0<0)continue;
                 float x=left+i*slot+slot*.18f,y=bottom-Math.min(60,satellite.cn0)/60f*(bottom-top-dp(12));
-                if(terminal){paint.setTypeface(Typeface.MONOSPACE);paint.setColor(signalColor(satellite.cn0));paint.setTextSize(dp(9));for(float at=bottom;at>y;at-=dp(10))canvas.drawText("#",x,at,paint);paint.setColor(muted);canvas.drawText(""+satellite.svid,x,bottom+dp(15),paint);continue;}
                 paint.setColor(signalColor(satellite.cn0));canvas.drawRect(x,y,x+slot*.64f,bottom,paint);
                 if(satellite.used){paint.setColor(0xff23b269);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(2));canvas.drawRect(x,y,x+slot*.64f,bottom,paint);paint.setStyle(Paint.Style.FILL);}
                 paint.setColor(foreground);paint.setTextSize(dp(10));canvas.drawText(format(satellite.cn0),x,y-dp(3),paint);
@@ -177,7 +181,7 @@ final class GnssPanel extends LinearLayout {
                 if(terminal){p.setTextSize(dp(10));p.setTextAlign(Paint.Align.CENTER);c.drawText("["+s.svid+"]",at.x,at.y+dp(3),p);p.setTextAlign(Paint.Align.LEFT);continue;}
                 c.drawCircle(at.x,at.y,dp(12),p);if(s.used){p.setColor(0xff23b269);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(3));c.drawCircle(at.x,at.y,dp(15),p);p.setStyle(Paint.Style.FILL);}p.setColor(Color.BLACK);p.setTextSize(dp(10));p.setTextAlign(Paint.Align.CENTER);c.drawText(""+s.svid,at.x,at.y+dp(3),p);p.setTextAlign(Paint.Align.LEFT);}smoothSky.keySet().retainAll(current);
         }
-        @Override public boolean onTouchEvent(MotionEvent e){if(e.getAction()==MotionEvent.ACTION_DOWN)return true;if(e.getAction()==MotionEvent.ACTION_UP){performClick();int nearest=-1;double distance=dp(22);for(int i=0;i<points.size();i++){PointF point=points.get(i);if(point!=null){double delta=Math.hypot(e.getX()-point.x,e.getY()-point.y);if(delta<distance){distance=delta;nearest=i;}}}if(nearest>=0)open(values.get(nearest));else{filterOpen=!filterOpen;refresh();}return true;}return super.onTouchEvent(e);}
+        @Override public boolean onTouchEvent(MotionEvent e){if(e.getAction()==MotionEvent.ACTION_DOWN)return true;if(e.getAction()==MotionEvent.ACTION_UP){performClick();int nearest=-1;double distance=dp(22);for(int i=0;i<points.size();i++){PointF point=points.get(i);if(point!=null){double delta=Math.hypot(e.getX()-point.x,e.getY()-point.y);if(delta<distance){distance=delta;nearest=i;}}}if(nearest>=0)open(values.get(nearest));else showConstellationFilter();return true;}return super.onTouchEvent(e);}
         @Override public boolean performClick(){super.performClick();return true;}
     }
 }

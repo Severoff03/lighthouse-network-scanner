@@ -12,7 +12,6 @@ import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -33,6 +32,7 @@ import ru.lighthouse.core.ScanProfile;
 final class SettingsPage extends ScrollView {
     interface Listener {
         void themeChanged(String theme);
+        void languageChanged(String language);
         void save(String theme, String language, ScanProfile profile, boolean radio, String detector404Token,
                   List<NamedConfiguration> telegramProxies, List<NamedConfiguration> vpnProfiles);
         void requestPermissions();
@@ -41,18 +41,24 @@ final class SettingsPage extends ScrollView {
         void exportErrors();
         void checkForUpdates();
         void installUpdate();
+        void saveOpenCellIdKey(String key);
     }
 
     private static final int ACCENT = Color.rgb(38, 198, 218);
     private final int surface, primary, secondary;
     private final Context controlsContext;
-    private final Spinner theme, language, depth;
+    private final LinearLayout theme, language;
+    private final Spinner depth;
+    private final Button[] themeOptions=new Button[4], languageOptions=new Button[2];
+    private String themeChoice,languageChoice;
     private final CheckBox radio;
     private final EditText detectorToken;
     private final LinearLayout proxyRows, vpnRows;
     private final List<ConfigRow> proxyFields = new ArrayList<>(), vpnFields = new ArrayList<>();
     private final Button permissions, usageAccess, baseline, save, addProxy, addVpn;
     private final Button checkUpdates, installUpdate;
+    private final Button saveCellKey;
+    private final EditText cellKey;
     private final TextView scanNotice, saveHint, usageStatus, updateStatus;
 
     SettingsPage(Context context, boolean dark, String savedTheme, ScanProfile profile, boolean radioEnabled,
@@ -76,21 +82,21 @@ final class SettingsPage extends ScrollView {
 
         LinearLayout appearance = card(root, "Оформление");
         appearance.addView(text("Тема приложения", 13, secondary, false));
-        theme = spinner(new String[]{"Чёрная", "Светлая", "Системная", "Watch Dogs // Terminal"}, "Тема приложения");
-        theme.setSelection("light".equals(savedTheme) ? 1 : "system".equals(savedTheme) ? 2 : "watchdogs".equals(savedTheme) ? 3 : 0);
-        theme.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String chosen=selectedTheme();
-                if(!chosen.equals(context.getSharedPreferences("settings",Context.MODE_PRIVATE).getString("theme","dark")))
-                    listener.themeChanged(chosen);
-            }
-            @Override public void onNothingSelected(AdapterView<?> parent) { }
-        });
+        themeChoice=savedTheme;theme=new LinearLayout(context);
+        String[] themes={"dark","light","system","watchdogs"},themeNames={"Чёрная","Светлая","Системная","Watch\nDogs"};
+        for(int i=0;i<themes.length;i++){String value=themes[i];Button option=button(themeNames[i],false);option.setTextSize(11);option.setMinWidth(0);option.setMinimumWidth(0);option.setPadding(dp(2),0,dp(2),0);themeOptions[i]=option;
+            option.setOnClickListener(v->{if(value.equals(themeChoice))return;themeChoice=value;styleChoices(themeOptions,themes,themeChoice);listener.themeChanged(value);});
+            theme.addView(option,new LinearLayout.LayoutParams(0,dp(48),1));}
+        styleChoices(themeOptions,themes,themeChoice);
         appearance.addView(theme, control());
         appearance.addView(text("Системная тема следует оформлению устройства.", 12, secondary, false));
         appearance.addView(text("Language / Язык",13,secondary,false));
-        language=spinner(new String[]{"English","Русский"},"Language / Язык");
-        language.setSelection(UiLanguage.isRussian()?1:0);appearance.addView(language,control());
+        languageChoice=UiLanguage.isRussian()?"ru":"en";language=new LinearLayout(context);
+        String[] languages={"en","ru"},languageNames={"English","Русский"};
+        for(int i=0;i<languages.length;i++){String value=languages[i];Button option=button(languageNames[i],false);option.setMinWidth(0);option.setMinimumWidth(0);languageOptions[i]=option;
+            option.setOnClickListener(v->{if(value.equals(languageChoice))return;languageChoice=value;styleChoices(languageOptions,languages,languageChoice);listener.languageChanged(value);});
+            language.addView(option,new LinearLayout.LayoutParams(0,dp(48),1));}
+        styleChoices(languageOptions,languages,languageChoice);appearance.addView(language,control());
 
         LinearLayout updates = card(root, "Обновления");
         updates.addView(text("Lighthouse проверяет последний GitHub Release при запуске и периодически в фоне. При недоступности GitHub проверяется локальный Mothman. APK скачивается после подтверждения и передаётся системному установщику Android.", 13, secondary, false));
@@ -158,33 +164,43 @@ final class SettingsPage extends ScrollView {
         Button export = button("Сохранить журнал ошибок", false);
         export.setOnClickListener(v -> listener.exportErrors()); errors.addView(export, control());
 
+        LinearLayout tower = card(root,"OpenCellID");
+        tower.addView(text("Ключ API берётся из OpenCellID → API Access Tokens. Вводите только сам ключ, без URL и key=. Cell ID — числовой идентификатор соты, это не ключ API.",13,secondary,false));
+        tower.addView(text("Пример: YOUR_API_KEY — место для личного ключа; Cell ID 26511 — пример идентификатора соты, не ваша вышка.",12,secondary,false));
+        cellKey=new EditText(controlsContext);cellKey.setSingleLine(true);cellKey.setTextColor(primary);cellKey.setHintTextColor(secondary);
+        cellKey.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);cellKey.setHint("OpenCellID API key");
+        cellKey.setText(context.getSharedPreferences("tower-map",Context.MODE_PRIVATE).getString("key",""));tower.addView(cellKey,control());
+        saveCellKey=button("Сохранить ключ OpenCellID",false);saveCellKey.setOnClickListener(v->listener.saveOpenCellIdKey(cellKey.getText().toString().trim()));tower.addView(saveCellKey,control());
+
         save = button("Сохранить настройки", true);
         save.setOnClickListener(v -> listener.save(selectedTheme(), selectedLanguage(), selectedProfile(), radio.isChecked(),
             detectorToken.getText().toString().trim(), collect(proxyFields), collect(vpnFields)));
         root.addView(save, control());
-        saveHint = text("Тема применяется сразу и сохраняется. Остальные параметры сохраняются кнопкой выше.", 12, secondary, false);
+        saveHint = text("Тема и язык применяются сразу. Остальные параметры сохраняются кнопкой выше.", 12, secondary, false);
         saveHint.setPadding(0, dp(10), 0, dp(12)); root.addView(saveHint);
         TextView footer = text("Lighthouse " + version + "\nmade by Mothman", 12, secondary, false);
         footer.setGravity(Gravity.CENTER); footer.setPadding(0, dp(12), 0, dp(8)); root.addView(footer);
         addView(root);
     }
 
-    String selectedTheme() { return theme.getSelectedItemPosition() == 1 ? "light" : theme.getSelectedItemPosition() == 2 ? "system" : theme.getSelectedItemPosition() == 3 ? "watchdogs" : "dark"; }
-    String selectedLanguage(){return language.getSelectedItemPosition()==1?"ru":"en";}
-    void restoreLanguage(String value){language.setSelection("ru".equals(value)?1:0);}
+    String selectedTheme() { return themeChoice; }
+    String selectedLanguage(){return languageChoice;}
+    void restoreLanguage(String value){languageChoice="ru".equals(value)?"ru":"en";styleChoices(languageOptions,new String[]{"en","ru"},languageChoice);}
     ScanProfile selectedProfile() { return depth.getSelectedItemPosition() == 0 ? ScanProfile.DEEP : ScanProfile.QUICK; }
     boolean selectedRadio() { return radio.isChecked(); }
 
     void restoreDraft(String value, ScanProfile profile, boolean collectRadio) {
-        theme.setSelection("light".equals(value) ? 1 : "system".equals(value) ? 2 : "watchdogs".equals(value) ? 3 : 0);
+        themeChoice=value;styleChoices(themeOptions,new String[]{"dark","light","system","watchdogs"},themeChoice);
         depth.setSelection(profile == ScanProfile.DEEP ? 0 : 1); radio.setChecked(collectRadio);
     }
 
     void updateAvailability(boolean scanning, boolean canRememberBaseline) {
         scanNotice.setVisibility(scanning ? VISIBLE : GONE);
-        for (View control : new View[]{theme, language, depth, radio, permissions, usageAccess, detectorToken, addProxy, addVpn, save}) {
+        for (View control : new View[]{theme, language, depth, radio, permissions, usageAccess, detectorToken, addProxy, addVpn, cellKey, saveCellKey, save}) {
             control.setEnabled(!scanning); control.setAlpha(scanning ? .55f : 1f);
         }
+        for(Button option:themeOptions){option.setEnabled(!scanning);option.setAlpha(scanning?.55f:1f);}
+        for(Button option:languageOptions){option.setEnabled(!scanning);option.setAlpha(scanning?.55f:1f);}
         for (ConfigRow row : proxyFields) row.enabled(!scanning);
         for (ConfigRow row : vpnFields) row.enabled(!scanning);
         baseline.setEnabled(!scanning && canRememberBaseline);
@@ -314,6 +330,13 @@ final class SettingsPage extends ScrollView {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         value.setAdapter(adapter); value.setContentDescription(description); value.setMinimumHeight(dp(48));
         value.setBackgroundTintList(ColorStateList.valueOf(secondary));if(TerminalTheme.enabled(getContext()))value.setPopupBackgroundDrawable(TerminalTheme.panel(getContext(),surface));return value;
+    }
+    private void styleChoices(Button[] buttons,String[] values,String selected){
+        for(int i=0;i<buttons.length;i++){boolean active=values[i].equals(selected);Button option=buttons[i];
+            int fill=active?(TerminalTheme.enabled(getContext())?TerminalTheme.ACCENT:ACCENT):surface;
+            GradientDrawable shape=round(fill);shape.setStroke(dp(1),active?fill:secondary);option.setBackground(shape);
+            option.setTextColor(active?(TerminalTheme.enabled(getContext())?TerminalTheme.BACKGROUND:Color.rgb(5,31,38)):primary);
+        }
     }
 
     private LinearLayout column() { LinearLayout value = new LinearLayout(getContext()); value.setOrientation(LinearLayout.VERTICAL); return value; }

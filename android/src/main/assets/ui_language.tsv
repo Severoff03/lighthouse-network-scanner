@@ -289,6 +289,8 @@ Wi-Fi: принудительный стандарт и диапазон\tWi-Fi:
 Системные настройки Bluetooth\tBluetooth system settings
 Системные настройки Wi-Fi\tWi-Fi system settings
 Системные настройки мобильной сети\tMobile network system settings
+Выбор оператора\tOperator selection
+Параметры мобильной сети\tMobile network options
 Системные настройки недоступны\tSystem settings unavailable
 Сначала проверьте наличие обновлений\tCheck for updates first
 Снова доступны: \tAvailable again: 
@@ -590,6 +592,10 @@ Bluetooth выключен\tBluetooth off
 Нет разрешения Bluetooth\tBluetooth permission missing
 GNSS-приёмник недоступен\tGNSS receiver unavailable
 Разрешите точное местоположение для GNSS\tAllow precise location for GNSS
+Ключ API берётся из OpenCellID → API Access Tokens. Вводите только сам ключ, без URL и key=. Cell ID — числовой идентификатор соты, это не ключ API.\tGet the API key from OpenCellID → API Access Tokens. Enter only the key, without a URL or key=. Cell ID is a numeric cell identifier, not the API key.
+Пример: YOUR_API_KEY — место для личного ключа; Cell ID 26511 — пример идентификатора соты, не ваша вышка.\tExample: YOUR_API_KEY is a placeholder for your own key; Cell ID 26511 is an example cell identifier, not your tower.
+Сохранить ключ OpenCellID\tSave OpenCellID key
+Ключ OpenCellID сохранён\tOpenCellID key saved
 GPS выключен в настройках устройства\tGPS disabled in device settings
 NMEA недоступен: тип 2D/3D не определяется\tNMEA unavailable: 2D/3D fix type cannot be determined
 Включите геолокацию / GPS\tEnable location / GPS
@@ -701,7 +707,7 @@ HTTP-ответ через TLS; сертификат сервера не про�
 Список\tList
 Десятичный\tDecimal
 Градусы и минуты\tDeg Min
-Тема применяется сразу и сохраняется. Остальные параметры сохраняются кнопкой выше.\tThe theme applies and saves immediately. Use the button above to save other settings.
+Тема и язык применяются сразу. Остальные параметры сохраняются кнопкой выше.\tTheme and language apply immediately. Use the button above to save other settings.
 Управление радиомодулями\tRadio controls
 Сканирование отменено\tScan cancelled
  · устарело / возраст неизвестен\t · stale / age unknown
@@ -768,11 +774,11 @@ Wi-Fi модуль не обнаружен\tWi-Fi module not found
 Радиосвязь и доступность сот\tCell radio and visibility
 Android/модем не вернул Cell ID. Это не означает отсутствие вышки: проверьте разрешения, геолокацию и регистрацию SIM; внешняя карта может не содержать эту вышку.\tAndroid or the modem did not report Cell ID. This does not mean the tower is absent; check permissions and location services. The external map may not contain this tower.
 Для CellMapper/OpenCellID нужны MCC/MNC + TAC(LAC) + CID; публичные базы могут не содержать новую или закрытую вышку.\tCellMapper/OpenCellID lookup needs MCC/MNC + TAC/LAC + CID; public databases may lack new or private towers.
-Маршрут до IP-адреса или URL. Показаны только ответы настоящей утилиты traceroute; * означает отсутствие ответа. На этом устройстве может потребоваться утилита с root-доступом.\tRoute to an IP address or URL. Only replies from a real traceroute utility are shown; * means no reply. A root-capable traceroute utility may be required on this device.
 Использовать root для трассировки\tUse root traceroute
-Трассировка завершена. Звёздочки обозначают маршрутизаторы, которые не ответили.\tTrace complete. Asterisks indicate routers that did not answer.
 Трассировка с root недоступна. Разрешите root-доступ и установите утилиту traceroute.\tRoot traceroute is unavailable. Grant root access and install a traceroute-capable binary.
-На этом устройстве трассировка без root недоступна. Установите Pixel Root и утилиту traceroute, затем нажмите Use root traceroute.\tTraceroute is unavailable without root on this device. Install Pixel Root and a traceroute-capable binary, then tap Use root traceroute.
+Сначала проверяются traceroute и tracepath без root. Показаны только измеренные узлы; * означает отсутствие ответа.\tRoute to an IP address or URL. Traceroute and tracepath are tried without root first. Only measured hops are shown; * means no reply.
+Трассировка завершена. Отсутствие ответа не доказывает отсутствие узла.\tTrace finished. Missing replies do not prove that a hop is absent.
+Без root не найдена доступная утилита traceroute или tracepath. Root необязателен, если доступна совместимая утилита без привилегий.\tNo usable traceroute or tracepath utility was found without root. Root is optional if a compatible unprivileged utility is available.
 Адреса с областью действия не поддерживаются этим модулем трассировки\tScoped addresses are not supported by this traceroute backend
 Транспорт ответил, но проверяемый веб-адрес не вернул успешный HTTP-ответ.\tTransport answered, but this web endpoint did not return a successful HTTP response.
 Root-доступ был отклонён\tRoot access was denied

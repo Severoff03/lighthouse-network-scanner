@@ -162,7 +162,7 @@ public final class MainActivity extends Activity {
         View content = buildUi();
         UiLanguage.apply(content);if(terminal)TerminalTheme.apply(content);
         setContentView(content);
-        ui.post(new Runnable(){private int frame;@Override public void run(){if(!alive)return;if(terminal&&terminalHeader!=null){String[] cursor={"|","/","-","\\"};terminalHeader.setText("[ "+cursor[frame++%cursor.length]+" ]  LIGHTHOUSE // RADIO + NETWORK");}ui.postDelayed(this,700);}});
+        ui.post(new Runnable(){private int frame;@Override public void run(){if(!alive)return;if(terminal&&terminalHeader!=null){String[] cursor={"|","/","-","\\"};terminalHeader.setText("[ "+cursor[frame++%cursor.length]+" ]  LIGHTHOUSE // "+(UiLanguage.isRussian()?"РАДИО + СЕТЬ":"RADIO + NETWORK"));}ui.postDelayed(this,700);}});
         content.requestApplyInsets();
         bindActions();
         scheduleBackgroundUpdateCheck();
@@ -290,6 +290,11 @@ public final class MainActivity extends Activity {
             updateManager.isConfigured(),
             new SettingsPage.Listener() {
                 @Override public void themeChanged(String theme) { applyTheme(theme); }
+                @Override public void languageChanged(String language) { applyLanguage(language); }
+                @Override public void saveOpenCellIdKey(String key) {
+                    getSharedPreferences("tower-map",MODE_PRIVATE).edit().putString("key",key).apply();TowerMap.clearCache();
+                    Toast.makeText(MainActivity.this,UiLanguage.text("Ключ OpenCellID сохранён"),Toast.LENGTH_SHORT).show();
+                }
                 @Override public void save(String theme, String language, ScanProfile profile, boolean radio, String detectorToken,
                                            List<NamedConfiguration> proxies, List<NamedConfiguration> vpns) {
                     saveSettings(theme, language, profile, radio, detectorToken, proxies, vpns);
@@ -332,7 +337,7 @@ public final class MainActivity extends Activity {
         pages.addView(historyPage, new FrameLayout.LayoutParams(-1, -1));
         pages.addView(settingsPage, new FrameLayout.LayoutParams(-1, -1));
         LinearLayout shell = new LinearLayout(this); shell.setOrientation(LinearLayout.VERTICAL); shell.setBackgroundColor(background);
-        if(terminal){terminalHeader=text("[ | ]  LIGHTHOUSE // RADIO + NETWORK",11,TerminalTheme.ACCENT,Typeface.BOLD);terminalHeader.setPadding(dp(12),dp(6),dp(12),dp(6));terminalHeader.setBackground(TerminalTheme.panel(this,TerminalTheme.SURFACE));shell.addView(terminalHeader,new LinearLayout.LayoutParams(-1,dp(32)));}else terminalHeader=null;
+        if(terminal){terminalHeader=text("[ | ]  LIGHTHOUSE // "+(UiLanguage.isRussian()?"РАДИО + СЕТЬ":"RADIO + NETWORK"),11,TerminalTheme.ACCENT,Typeface.BOLD);terminalHeader.setPadding(dp(12),dp(6),dp(12),dp(6));terminalHeader.setBackground(TerminalTheme.panel(this,TerminalTheme.SURFACE));shell.addView(terminalHeader,new LinearLayout.LayoutParams(-1,dp(32)));}else terminalHeader=null;
         shell.addView(pages, new LinearLayout.LayoutParams(-1, 0, 1));
         shell.addView(buildTabs(), new LinearLayout.LayoutParams(-1, dp(64)));
         applySafeArea(shell);
@@ -341,7 +346,7 @@ public final class MainActivity extends Activity {
 
     private View buildTabs() {
         LinearLayout tabs = new LinearLayout(this); tabs.setBackgroundColor(surface);
-        scanTab = actionButton(terminal?(UiLanguage.isRussian()?"[ СЕТЬ ]":"[ NET ]"):UiLanguage.isRussian()?"Сеть":"Network",surface,primary); radioTab = actionButton(terminal?"[ RADIO ]":"Radio",surface,primary);
+        scanTab = actionButton(terminal?(UiLanguage.isRussian()?"[ СЕТЬ ]":"[ NET ]"):UiLanguage.isRussian()?"Сеть":"Network",surface,primary); radioTab = actionButton(terminal?(UiLanguage.isRussian()?"[ РАДИО ]":"[ RADIO ]"):"Radio",surface,primary);
         historyTab = actionButton(terminal?(UiLanguage.isRussian()?"[ ИНСТР ]":"[ TOOLS ]"):"Tool",surface,primary);settingsTab = actionButton(terminal?(UiLanguage.isRussian()?"[ НАСТР ]":"[ CONFIG ]"):"Settings",surface,primary);
         if(!terminal){setTabIcon(scanTab,R.drawable.nav_network);setTabIcon(radioTab,R.drawable.nav_radio);
         setTabIcon(historyTab,R.drawable.nav_tools);setTabIcon(settingsTab,R.drawable.nav_settings);}
@@ -441,14 +446,14 @@ public final class MainActivity extends Activity {
         Button toolBack=actionButton("←  Tools",surface,primary);toolBack.setOnClickListener(v->showTool("home"));content.addView(toolBack);
         content.addView(text("Control",24,primary,Typeface.BOLD));
         content.addView(text("Управление радиомодулями",14,secondary,Typeface.NORMAL));
-        for (String label : new String[]{"GSM / LTE only и LTE bands", "Ручной выбор базовой станции", "Wi-Fi: принудительный стандарт и диапазон", "Bluetooth: принудительный протокол"}) {
+        for (String label : new String[]{"Wi-Fi: принудительный стандарт и диапазон", "Bluetooth: принудительный протокол"}) {
             TextView item = text(label + "\nНедоступно через публичный Android API для обычного приложения",14,secondary,Typeface.NORMAL);
             item.setPadding(0,dp(16),0,dp(12)); content.addView(item);
         }
         content.addView(text(UiLanguage.isRussian()
-            ? "Выбор сот и блокировка диапазонов требуют прав оператора/системы или совместимого модуля с root. Эта версия не запрашивает root и не меняет настройки модема. Сам root не гарантирует поддержку на каждом устройстве."
-            : "Cell selection and band locking require carrier/system privileges or a compatible root backend. This version does not request root or change modem settings. Root alone does not guarantee support on every device.",13,secondary,Typeface.NORMAL));
-        for (String[] entry : new String[][]{{"Системные настройки Wi-Fi",Settings.ACTION_WIFI_SETTINGS},{"Системные настройки Bluetooth",Settings.ACTION_BLUETOOTH_SETTINGS},{"Системные настройки мобильной сети",Settings.ACTION_NETWORK_OPERATOR_SETTINGS}}) {
+            ? "Android показывает обслуживающую и соседние соты, но не позволяет обычному приложению выбрать Cell ID или автоматически переключать GSM/4G/5G. Выбор оператора — это выбор сети, а не вышки. Откройте системные параметры сети, если телефон позволяет вручную выбрать режим, затем вернитесь в Radio для новых измерений."
+            : "Android reports serving and neighboring cells, but a regular app cannot select a Cell ID or automatically cycle GSM/4G/5G. Operator selection chooses a network, not a tower. Open mobile network settings if your phone offers manual modes, then return to Radio for new measurements.",13,secondary,Typeface.NORMAL));
+        for (String[] entry : new String[][]{{"Системные настройки Wi-Fi",Settings.ACTION_WIFI_SETTINGS},{"Системные настройки Bluetooth",Settings.ACTION_BLUETOOTH_SETTINGS},{"Выбор оператора",Settings.ACTION_NETWORK_OPERATOR_SETTINGS},{"Параметры мобильной сети",Settings.ACTION_DATA_ROAMING_SETTINGS}}) {
             Button button = actionButton(entry[0],surface,primary);
             button.setOnClickListener(v -> { try { startActivity(new Intent(entry[1])); } catch (Exception error) { Toast.makeText(this,UiLanguage.text("Экран недоступен на этом устройстве"),Toast.LENGTH_LONG).show(); } });
             content.addView(button,margins(-1,dp(56),0,0,8,0,0));
@@ -462,7 +467,7 @@ public final class MainActivity extends Activity {
         LinearLayout monitoring=new LinearLayout(this);monitoring.setOrientation(LinearLayout.VERTICAL);
         LinearLayout heading=new LinearLayout(this);heading.setGravity(Gravity.CENTER_VERTICAL);
         TextView light=text("●",22,GREEN,Typeface.BOLD);heading.addView(light);
-        heading.addView(text("Radio monitoring",18,primary,Typeface.BOLD));monitoring.addView(heading);
+        heading.addView(text(UiLanguage.isRussian()?"Радиомониторинг":"Radio monitoring",18,primary,Typeface.BOLD));monitoring.addView(heading);
         Button start=actionButton("Start monitoring",surface,primary);start.setOnClickListener(v->configureMonitor());monitoring.addView(start);
         Button stop=actionButton("Stop monitoring",surface,primary);
         stop.setOnClickListener(v->startService(new Intent(this,RadioMonitorService.class).setAction("stop")));monitoring.addView(stop);
@@ -470,22 +475,12 @@ public final class MainActivity extends Activity {
         Runnable update=new Runnable(){public void run(){if(!alive)return;boolean running=RadioMonitorService.running;
             start.setVisibility(running?View.GONE:View.VISIBLE);stop.setVisibility(running?View.VISIBLE:View.GONE);
             stop.setEnabled(!RadioMonitorService.exporting);light.setVisibility(running?View.VISIBLE:View.GONE);
-            monitorState.setText(RadioMonitorService.exporting?"Saving to Downloads…":
-                running?"Recording":!RadioMonitorService.lastError.isEmpty()?RadioMonitorService.lastError:
-                !RadioMonitorService.lastExport.isEmpty()?"Saved to Downloads: "+RadioMonitorService.lastExport:"");
+            monitorState.setText(RadioMonitorService.exporting?(UiLanguage.isRussian()?"Сохранение в Downloads…":"Saving to Downloads…"):
+                running?UiLanguage.text("Recording"):!RadioMonitorService.lastError.isEmpty()?UiLanguage.text(RadioMonitorService.lastError):
+                !RadioMonitorService.lastExport.isEmpty()?(UiLanguage.isRussian()?"Сохранено в Downloads: ":"Saved to Downloads: ")+RadioMonitorService.lastExport:"");
             ui.postDelayed(this,2000);
         }};ui.post(update);
         root.addView(monitoring,2);
-        LinearLayout tower=new LinearLayout(this);tower.setOrientation(LinearLayout.VERTICAL);
-        tower.addView(text("OpenCellID",18,primary,Typeface.BOLD));
-        tower.addView(text("Copy the complete value from OpenCellID → API Access Tokens. Paste only the key, without key= or a URL. A valid key does not guarantee that every cell is in the database.",12,secondary,Typeface.NORMAL));
-        Button key=actionButton("Set API key",surface,primary);
-        key.setOnClickListener(v->{android.widget.EditText input=new android.widget.EditText(this);input.setSingleLine(true);
-            input.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            input.setText(getSharedPreferences("tower-map",MODE_PRIVATE).getString("key",""));
-            new AlertDialog.Builder(this).setTitle("OpenCellID key").setView(input)
-                .setPositiveButton("Save",(dialog,which)->{getSharedPreferences("tower-map",MODE_PRIVATE).edit().putString("key",input.getText().toString().trim()).apply();TowerMap.clearCache();})
-                .setNegativeButton("Cancel",null).show();});tower.addView(key);root.addView(tower,3);
     }
 
     private void configureMonitor() {
@@ -1536,6 +1531,12 @@ public final class MainActivity extends Activity {
         if(!getSharedPreferences("settings",MODE_PRIVATE).edit().putString("theme",theme).commit())return;
         terminal=TerminalTheme.enabled(this);dark=isDark();
         setTheme(dark ? android.R.style.Theme_Material_NoActionBar : android.R.style.Theme_Material_Light_NoActionBar);
+        rebuildForTheme();
+    }
+    private void applyLanguage(String language) {
+        if(scanning)return;
+        if(!getSharedPreferences("settings",MODE_PRIVATE).edit().putString("language",language).commit())return;
+        UiLanguage.init(this);
         rebuildForTheme();
     }
 

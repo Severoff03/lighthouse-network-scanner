@@ -86,9 +86,7 @@ public final class TargetCatalog {
 
             t("sber", "Сбер", BANKING, "sberbank.ru", "RU"),
             t("tbank", "Т-Банк", BANKING, "tbank.ru", "RU"),
-            t("alfabank", "Альфа-Банк", BANKING, "alfabank.ru", "RU"),
             t("vtb", "ВТБ", BANKING, "vtb.ru", "RU"),
-            t("mir", "МИР", BANKING, "mironline.ru", "RU"),
             t("raiffeisen", "Райффайзен Банк", BANKING, "www.raiffeisen.ru", "RU"),
             t("gazprombank", "Газпромбанк", BANKING, "www.gazprombank.ru", "RU"),
             t("yoomoney", "ЮMoney", BANKING, "yoomoney.ru", "RU"),
