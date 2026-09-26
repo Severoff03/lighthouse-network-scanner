@@ -317,6 +317,11 @@ final class RadioDiagnostics {
                 CellInfo cell = cells.get(i); visible++; if (cell.isRegistered()) registered++;
                 Map<String, String> values = cellFields(cell); values.put("sim", label); values.put("source", source);
                 values.put("registered", String.valueOf(cell.isRegistered()));
+                String cellPlmn = values.getOrDefault("mcc", "") + values.getOrDefault("mnc", "");
+                String networkName = manager.getNetworkOperatorName();
+                if (cell.isRegistered() && cellPlmn.equals(manager.getNetworkOperator())
+                    && networkName != null && !networkName.isBlank() && !values.containsKey("operator"))
+                    values.put("operator", networkName);
                 values.put("name", values.get("technology") + " / " + values.getOrDefault("mcc", "?") + "-" + values.getOrDefault("mnc", "?") + " / " + values.getOrDefault("cellId", "?"));
                 values.put("observedElapsedMs", String.valueOf(cell.getTimeStamp() / 1_000_000));
                 values.put("simPresent", String.valueOf(manager.getSimState() == TelephonyManager.SIM_STATE_READY));

@@ -49,7 +49,7 @@ android {
         release {
             minifyEnabled false
             // A configured keystore is required for upgrades across different builds.
-            signingConfig releaseSigningConfigured ? signingConfigs.release : signingConfigs.debug
+            signingConfig releaseSigningConfigured ? signingConfigs.release : null
         }
     }
 

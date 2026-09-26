@@ -12,6 +12,7 @@ import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -31,6 +32,7 @@ import ru.lighthouse.core.ScanProfile;
 /** A persistent tab, not a dialog. It owns only the settings form, never the scan. */
 final class SettingsPage extends ScrollView {
     interface Listener {
+        void themeChanged(String theme);
         void save(String theme, String language, ScanProfile profile, boolean radio, String detector404Token,
                   List<NamedConfiguration> telegramProxies, List<NamedConfiguration> vpnProfiles);
         void requestPermissions();
@@ -76,6 +78,14 @@ final class SettingsPage extends ScrollView {
         appearance.addView(text("Тема приложения", 13, secondary, false));
         theme = spinner(new String[]{"Чёрная", "Светлая", "Системная", "Watch Dogs // Terminal"}, "Тема приложения");
         theme.setSelection("light".equals(savedTheme) ? 1 : "system".equals(savedTheme) ? 2 : "watchdogs".equals(savedTheme) ? 3 : 0);
+        theme.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String chosen=selectedTheme();
+                if(!chosen.equals(context.getSharedPreferences("settings",Context.MODE_PRIVATE).getString("theme","dark")))
+                    listener.themeChanged(chosen);
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) { }
+        });
         appearance.addView(theme, control());
         appearance.addView(text("Системная тема следует оформлению устройства.", 12, secondary, false));
         appearance.addView(text("Language / Язык",13,secondary,false));
@@ -152,7 +162,7 @@ final class SettingsPage extends ScrollView {
         save.setOnClickListener(v -> listener.save(selectedTheme(), selectedLanguage(), selectedProfile(), radio.isChecked(),
             detectorToken.getText().toString().trim(), collect(proxyFields), collect(vpnFields)));
         root.addView(save, control());
-        saveHint = text("Изменения применятся после сохранения. Переключение вкладок не сбрасывает выбранные параметры.", 12, secondary, false);
+        saveHint = text("Тема применяется сразу и сохраняется. Остальные параметры сохраняются кнопкой выше.", 12, secondary, false);
         saveHint.setPadding(0, dp(10), 0, dp(12)); root.addView(saveHint);
         TextView footer = text("Lighthouse " + version + "\nmade by Mothman", 12, secondary, false);
         footer.setGravity(Gravity.CENTER); footer.setPadding(0, dp(12), 0, dp(8)); root.addView(footer);
@@ -161,6 +171,7 @@ final class SettingsPage extends ScrollView {
 
     String selectedTheme() { return theme.getSelectedItemPosition() == 1 ? "light" : theme.getSelectedItemPosition() == 2 ? "system" : theme.getSelectedItemPosition() == 3 ? "watchdogs" : "dark"; }
     String selectedLanguage(){return language.getSelectedItemPosition()==1?"ru":"en";}
+    void restoreLanguage(String value){language.setSelection("ru".equals(value)?1:0);}
     ScanProfile selectedProfile() { return depth.getSelectedItemPosition() == 0 ? ScanProfile.DEEP : ScanProfile.QUICK; }
     boolean selectedRadio() { return radio.isChecked(); }
 
@@ -181,38 +192,38 @@ final class SettingsPage extends ScrollView {
     }
 
     void updateUsageAccess(boolean granted) {
-        usageStatus.setText(granted ? "Доступ предоставлен" : "Доступ не предоставлен");
+        usageStatus.setText(UiLanguage.text(granted ? "Доступ предоставлен" : "Доступ не предоставлен"));
         usageStatus.setTextColor(granted ? Color.rgb(53, 211, 153) : Color.rgb(255, 183, 77));
     }
 
-    void showSaved() { saveHint.setText("Настройки сохранены. Результаты предыдущей проверки остались во вкладке «Сканирование»."); }
+    void showSaved() { saveHint.setText(UiLanguage.text("Настройки сохранены. Результаты предыдущей проверки остались во вкладке «Сканирование».")); }
 
     void updateChecking() {
         checkUpdates.setEnabled(false); checkUpdates.setAlpha(.55f);
-        installUpdate.setVisibility(GONE); updateStatus.setText("Проверяем наличие новой версии…");
+        installUpdate.setVisibility(GONE); updateStatus.setText(UiLanguage.text("Проверяем наличие новой версии…"));
         updateStatus.setTextColor(secondary);
     }
 
     void updateAvailable(String version) {
         checkUpdates.setEnabled(true); checkUpdates.setAlpha(1f);
-        installUpdate.setVisibility(VISIBLE); updateStatus.setText("Доступна " + version + ". Нажмите «Обновить приложение», чтобы скачать APK.");
+        installUpdate.setVisibility(VISIBLE); updateStatus.setText(UiLanguage.text("Доступна " + version + ". Нажмите «Обновить приложение», чтобы скачать APK."));
         updateStatus.setTextColor(Color.rgb(53, 211, 153));
     }
 
     void updateNoUpdate() {
         checkUpdates.setEnabled(true); checkUpdates.setAlpha(1f);
-        installUpdate.setVisibility(GONE); updateStatus.setText("Установлена последняя доступная версия.");
+        installUpdate.setVisibility(GONE); updateStatus.setText(UiLanguage.text("Установлена последняя доступная версия."));
         updateStatus.setTextColor(Color.rgb(53, 211, 153));
     }
 
     void updateDownloadProgress(int percent) {
         checkUpdates.setEnabled(false); checkUpdates.setAlpha(.55f); installUpdate.setVisibility(GONE);
-        updateStatus.setText("Загрузка обновления… " + percent + "%"); updateStatus.setTextColor(secondary);
+        updateStatus.setText(UiLanguage.text("Загрузка обновления… " + percent + "%")); updateStatus.setTextColor(secondary);
     }
 
     void updateReady() {
         checkUpdates.setEnabled(true); checkUpdates.setAlpha(1f);
-        updateStatus.setText("APK передан системному установщику."); updateStatus.setTextColor(Color.rgb(53, 211, 153));
+        updateStatus.setText(UiLanguage.text("APK передан системному установщику.")); updateStatus.setTextColor(Color.rgb(53, 211, 153));
     }
 
     void updateError(String message) {
@@ -312,9 +323,9 @@ final class SettingsPage extends ScrollView {
         LinearLayout body = column();
         boolean expanded = "Оформление".equals(title) || "Сканирование".equals(title);
         body.setVisibility(expanded ? VISIBLE : GONE);
-        heading.setText(title + (expanded ? " −" : " +"));
+        heading.setText(UiLanguage.text(title + (expanded ? " −" : " +")));
         heading.setOnClickListener(v -> { boolean open = body.getVisibility() != VISIBLE;
-            body.setVisibility(open ? VISIBLE : GONE); heading.setText(title + (open ? " −" : " +")); });
+            body.setVisibility(open ? VISIBLE : GONE); heading.setText(UiLanguage.text(title + (open ? " −" : " +"))); });
         value.addView(heading); value.addView(body); root.addView(value, spaced()); return body;
     }
     private TextView text(String value, int sp, int color, boolean bold) {

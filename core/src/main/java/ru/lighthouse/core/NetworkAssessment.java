@@ -118,7 +118,9 @@ public final class NetworkAssessment {
         if (result.target.probeKind == ServiceTarget.ProbeKind.HTTPS) {
             int successful = successfulWebSamples(result);
             if (successful >= attempts / 2 + 1) return ProbeResult.Status.AVAILABLE;
-            if (successful > 0 || hasWebResponse(result) || hasTransportResponse(result)) return ProbeResult.Status.DEGRADED;
+            // Only an intermittent successful HTTPS response is limited service access.
+            // DNS, ICMP, TCP and HTTP error pages cannot establish usable access.
+            if (successful > 0) return ProbeResult.Status.DEGRADED;
             return ProbeResult.Status.UNAVAILABLE;
         }
         int successful = 0;

@@ -58,11 +58,11 @@ final class HistoryPage extends ScrollView {
 
     void requestRefresh() { listener.refresh(limit); }
 
-    void showLoading() { status.setText("Загрузка…"); }
+    void showLoading() { status.setText(UiLanguage.text("Загрузка…")); }
 
     void show(List<ScanArchive.Entry> entries, List<ScanArchive.Change> events) {
         scans.removeAllViews(); changes.removeAllViews();
-        status.setText(entries.isEmpty() ? "Сканов пока нет." : "Сохранено сканов: " + entries.size());
+        status.setText(UiLanguage.text(entries.isEmpty() ? "Сканов пока нет." : "Сохранено сканов: " + entries.size()));
         if (entries.isEmpty()) scans.addView(empty("После завершения скана здесь появится локальный лог."), spaced());
         for (ScanArchive.Entry entry : entries) scans.addView(scanCard(entry), spaced());
         if (events.isEmpty()) changes.addView(empty(entries.size() < 2

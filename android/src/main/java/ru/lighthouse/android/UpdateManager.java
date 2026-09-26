@@ -188,6 +188,11 @@ final class UpdateManager {
             preferences.getString(PENDING_APK, "update.apk"), url,
             preferences.getString(PENDING_SHA, ""), preferences.getLong(PENDING_SIZE, 0),
             preferences.getString(PENDING_NOTES, ""), preferences.getString(PENDING_RELEASE_URL, ""));
+        if (url.startsWith("https://github.com/")
+            && !update.apkName.equals("Lighthouse-Android-v" + version + ".apk")) {
+            clearPending(context);
+            return null;
+        }
         try {
             PackageInfo installed = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             long current = Build.VERSION.SDK_INT >= 28 ? installed.getLongVersionCode() : installed.versionCode;
@@ -210,16 +215,15 @@ final class UpdateManager {
                 JSONObject item = assetsJson.optJSONObject(i);
                 if (item == null) continue;
                 String name = item.optString("name", "");
-                if (name.matches("Lighthouse-Android-v[0-9]+\\.[0-9]+\\.[0-9]+(?:-debug)?\\.apk")) apkAsset = item;
+                if (name.matches("Lighthouse-Android-v[0-9]+\\.[0-9]+\\.[0-9]+\\.apk")) apkAsset = item;
             }
         }
-        if (apkAsset == null) throw new IOException("В последнем релизе нет APK.");
+        if (apkAsset == null) return null;
         String version = release.optString("tag_name", "");
         if (version.startsWith("v") || version.startsWith("V")) version = version.substring(1);
         if (!version.matches("[0-9]+\\.[0-9]+\\.[0-9]+")) throw new IOException("Некорректная версия GitHub Release");
         String apkName = apkAsset.optString("name", "");
-        if (!apkName.equals("Lighthouse-Android-v" + version + ".apk")
-            && !apkName.equals("Lighthouse-Android-v" + version + "-debug.apk"))
+        if (!apkName.equals("Lighthouse-Android-v" + version + ".apk"))
             throw new IOException("APK не соответствует версии релиза");
         String url = apkAsset.optString("browser_download_url", "");
         String digest = apkAsset.optString("digest", "");

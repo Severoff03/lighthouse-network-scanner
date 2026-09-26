@@ -589,6 +589,7 @@ Bluetooth выключен\tBluetooth off
 Модуль Bluetooth недоступен\tBluetooth radio unavailable
 Нет разрешения Bluetooth\tBluetooth permission missing
 GNSS-приёмник недоступен\tGNSS receiver unavailable
+Разрешите точное местоположение для GNSS\tAllow precise location for GNSS
 GPS выключен в настройках устройства\tGPS disabled in device settings
 NMEA недоступен: тип 2D/3D не определяется\tNMEA unavailable: 2D/3D fix type cannot be determined
 Включите геолокацию / GPS\tEnable location / GPS
@@ -691,3 +692,87 @@ GitHub Release не содержит SHA-256 APK\tGitHub Release does not provid
 Недопустимый APK GitHub Release\tInvalid GitHub Release APK
 HTTP-ответ через TLS; сертификат сервера не проверялся. Ответ подтверждён, подлинность сервера — нет.\tHTTP response over TLS; server certificate not verified. This confirms a response, not server identity.
 Сертификат сервера в проверке доступности не проверяется.\tThe service reachability test does not verify the server certificate.
+опрос\tsurveyed
+ с назад\t s ago
+ожидание первого замера\twaiting for first survey
+Сигналы\tSignals
+Небосвод\tSky
+Положение\tPosition
+Список\tList
+Десятичный\tDecimal
+Градусы и минуты\tDeg Min
+Тема применяется сразу и сохраняется. Остальные параметры сохраняются кнопкой выше.\tThe theme applies and saves immediately. Use the button above to save other settings.
+Управление радиомодулями\tRadio controls
+Сканирование отменено\tScan cancelled
+ · устарело / возраст неизвестен\t · stale / age unknown
+ с\n\t s\n
+. Нажмите «Обновить приложение», чтобы скачать APK.\t. Tap Update app to download the APK.
+Показать неизвестные\tShow Unknown
+Скрыть неизвестные\tHide Unknown
+Трасса\tTrace
+Трассировка ICMP до IP-адреса или URL. Показаны только ответившие маршрутизаторы; * означает отсутствие ответа. VPN и фильтрация ICMP могут изменить маршрут.\tICMP route to an IP address or URL. Only routers that answer are shown; * means no reply. VPN and ICMP filtering can change the path.
+IP-адрес или URL\tIP address or URL
+Начать трассировку\tStart trace
+Остановить трассировку\tStop trace
+Готово\tReady
+Отменено\tCancelled
+Определение адреса…\tResolving host…
+Адрес назначения достигнут\tDestination reached
+Трассировка завершилась после 30 переходов; адрес назначения не ответил по ICMP.\tTrace ended after 30 hops; destination did not answer ICMP.
+Введите IP-адрес или URL\tEnter an IP address or URL
+Некорректный IP-адрес или URL\tInvalid IP address or URL
+DNS не вернул адрес\tNo address returned by DNS
+Трассировка ICMP недоступна на этом устройстве. Приложение не может получить переходы без разрешённой утилиты ping или backend с root-доступом.\tICMP trace is unavailable on this device. The app cannot get hop data without a permitted ping utility or a root-enabled backend.
+Чаты и мессенджеры\tChats and messaging
+Видео и музыка\tVideo and music
+Новости и медиа\tNews and media
+Система быстрых платежей\tFaster Payments System
+Работает нормально\tWorking normally
+Обычный уровень доступности. Часть сервисов может оставаться заблокированной или недоступной.\tNormal availability for this network. Some services may still be blocked or unavailable.
+Есть признаки необычных ограничений или массовых сбоев. Сравните результат с обычным уровнем этой сети.\tUnusual restrictions or widespread failures may be present. Compare this result with this network's baseline.
+Нет доступа к проверенным интернет-сервисам, включая российские. Причиной может быть не только блокировка.\tThe tested internet services, including Russian services, did not respond. Blocking is not the only possible cause.
+Обнаружен VPN: оценка относится к текущему маршруту через VPN, а не обязательно к сети оператора без него.\tVPN detected: the assessment applies to the current VPN route, not necessarily to the carrier network without it.
+Система обнаружила страницу входа в сеть. Откройте её и завершите подключение.\tAndroid detected a captive portal. Open it and complete sign-in.
+Успешных ответов веб-сервисов в этом скане нет.\tNo successful web-service responses in this scan.
+Проверены веб-узлы, не отправка сообщений, звонки или передача файлов. Это не гарантирует работу всех функций приложения.\tOnly web endpoints were checked, not messaging, calls or file transfers. This does not guarantee every app feature works.
+Работает хотя бы один настроенный прокси Telegram. Он помогает только Telegram и не открывает остальные сервисы.\tAt least one configured Telegram proxy works. It helps Telegram only and does not open other services.
+При белых списках обычные VPN, прокси, Tor и DPI-обходы могут не подключиться: сначала сохраните доступные каналы, SMS и телефоны, затем проверяйте методы через другую сеть.\tWith allowlists, ordinary VPNs, proxies, Tor and DPI workarounds may fail. Preserve available channels, SMS and phone calls, then test methods on another network.
+Если разрешённый маршрут существует, по очереди проверьте доверенный VPN с маскировкой трафика, Tor Browser с мостами или Psiphon; универсальной гарантии нет.\tIf an allowed route exists, test a trusted obfuscated VPN, Tor Browser with bridges, or Psiphon. None is guaranteed.
+Для DPI-фильтрации можно отдельно проверить Zapret или GoodbyeDPI на ПК и ByeDPI на Android; они не скрывают IP и не заменяют VPN.\tFor DPI filtering, test Zapret or GoodbyeDPI on a PC, or ByeDPI on Android. They do not hide your IP or replace a VPN.
+Для туннеля с маскировкой можно проверить AmneziaVPN/AmneziaWG, Outline либо другой доверенный VPN; сравните новый лог с прямым подключением.\tFor an obfuscated tunnel, test AmneziaVPN/AmneziaWG, Outline or another trusted VPN. Compare the new log with a direct connection.
+Резервные варианты: Tor Browser с мостами и Psiphon. Загружайте программы только из официальных репозиториев или магазинов.\tFallback options: Tor Browser with bridges and Psiphon. Download apps only from official repositories or stores.
+Официальные источники:\s\tOfficial sources:\s
+Источник: Mothman, локальная сеть. Манифест без доверенной цифровой подписи. Устанавливайте только с вашего сервера.\tSource: Mothman, local network. The manifest has no trusted digital signature. Install only from your own server.
+Не получено ни одного ответа веб-сервисов, в том числе российских. Это может быть блокировка, авария или отсутствие подключения; причина не установлена.\tNo web services responded, including Russian services. This may be blocking, an outage or no connection; the cause is unknown.
+Веб-сервисы не ответили, но транспортные или дополнительные внешние проверки работают. Это серьёзное нарушение доступности, однако полное отключение интернета не подтверждается.\tWeb services did not respond, but transport or other external checks did. Reachability is severely affected; a total internet outage is not confirmed.
+\sсервисов из\s\t\sservices out of\s
+Игровые магазины, авторизация и публичные серверы. Доступность конкретного игрового матча может отличаться.\tGame stores, sign-in and public servers. A specific game session may behave differently.
+Публичные сайты нейросетевых сервисов. Подписка, вход и отдельные модели не проверяются.\tPublic AI service websites. Subscriptions, sign-in and individual models are not checked.
+Видео, музыка и потоковые платформы. Для крупных сервисов могут отдельно проверяться сайт и сеть доставки контента.\tVideo, music and streaming platforms. Large services may have separate website and content network checks.
+Магазины, маркетплейсы и сервисы объявлений.\tStores, marketplaces and listings.
+. Возможна фильтрация маршрута или порта.\t. Route or port filtering is possible.
+Внешний мониторинг:\s\tExternal monitoring:\s
+Доступные поля зависят от разрешений, геолокации, модема и версии Android.\tAvailable fields depend on permissions, location services, modem and Android version.
+Нужно разрешение точного местоположения.\tPrecise location permission is required.
+Координаты не получены; это не доказывает неисправность GPS или модема.\tCoordinates were not received; this does not prove a GPS or modem fault.
+Активная сеть отсутствует. Радиосигнал сам по себе не даёт доступ в интернет.\tNo active network. A radio signal alone does not provide internet access.
+Активные запросы идут только по системному маршруту; VPN не обходится принудительно.\tActive requests use the system route; VPN is not bypassed.
+Системный маршрут.\s\tSystem route.\s
+Не системный маршрут.\s\tNot the system route.\s
+Wi-Fi модуль не обнаружен\tWi-Fi module not found
+Нужны точное местоположение и включённая геолокация. Нельзя считать отсутствие данных отсутствием точек.\tPrecise location permission and location services are required. Missing data does not mean there are no access points.
+Виден список из\s\tObserved\s
+ точек. Данные могут быть кэшированными; подключение к чужим сетям не выполняется.\t access points. Data may be cached; the app does not connect to other networks.
+Основной модем\tPrimary modem
+Регистрация/видимость соты не доказывает доступ к интернету. Lighthouse не обращается к внешней базе вышек: карта может показать «вышка не найдена», если её база не знает эту пару MCC/MNC/LAC/CID.\tA visible or registered cell does not prove internet access. The tower map may report no match if OpenCellID has no record for its MCC/MNC/LAC/CID.
+Радиосвязь и доступность сот\tCell radio and visibility
+Android/модем не вернул Cell ID. Это не означает отсутствие вышки: проверьте разрешения, геолокацию и регистрацию SIM; внешняя карта может не содержать эту вышку.\tAndroid or the modem did not report Cell ID. This does not mean the tower is absent; check permissions and location services. The external map may not contain this tower.
+Для CellMapper/OpenCellID нужны MCC/MNC + TAC(LAC) + CID; публичные базы могут не содержать новую или закрытую вышку.\tCellMapper/OpenCellID lookup needs MCC/MNC + TAC/LAC + CID; public databases may lack new or private towers.
+Маршрут до IP-адреса или URL. Показаны только ответы настоящей утилиты traceroute; * означает отсутствие ответа. На этом устройстве может потребоваться утилита с root-доступом.\tRoute to an IP address or URL. Only replies from a real traceroute utility are shown; * means no reply. A root-capable traceroute utility may be required on this device.
+Использовать root для трассировки\tUse root traceroute
+Трассировка завершена. Звёздочки обозначают маршрутизаторы, которые не ответили.\tTrace complete. Asterisks indicate routers that did not answer.
+Трассировка с root недоступна. Разрешите root-доступ и установите утилиту traceroute.\tRoot traceroute is unavailable. Grant root access and install a traceroute-capable binary.
+На этом устройстве трассировка без root недоступна. Установите Pixel Root и утилиту traceroute, затем нажмите Use root traceroute.\tTraceroute is unavailable without root on this device. Install Pixel Root and a traceroute-capable binary, then tap Use root traceroute.
+Адреса с областью действия не поддерживаются этим модулем трассировки\tScoped addresses are not supported by this traceroute backend
+Транспорт ответил, но проверяемый веб-адрес не вернул успешный HTTP-ответ.\tTransport answered, but this web endpoint did not return a successful HTTP response.
+Root-доступ был отклонён\tRoot access was denied

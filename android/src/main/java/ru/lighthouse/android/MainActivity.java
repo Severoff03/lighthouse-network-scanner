@@ -126,6 +126,7 @@ public final class MainActivity extends Activity {
     private FrameLayout toolsPage;
     private LinearLayout toolsHome;
     private IpScannerPage ipScannerPage;
+    private TraceRoutePage tracePage;
     private static final int EXPORT_RADIO = 1005;
     private ScrollView scanPage, categoryPage;
     private LinearLayout categoryPageContent;
@@ -159,10 +160,9 @@ public final class MainActivity extends Activity {
         setPalette();
         applySystemBars();
         View content = buildUi();
-        setContentView(content);
         UiLanguage.apply(content);if(terminal)TerminalTheme.apply(content);
+        setContentView(content);
         ui.post(new Runnable(){private int frame;@Override public void run(){if(!alive)return;if(terminal&&terminalHeader!=null){String[] cursor={"|","/","-","\\"};terminalHeader.setText("[ "+cursor[frame++%cursor.length]+" ]  LIGHTHOUSE // RADIO + NETWORK");}ui.postDelayed(this,700);}});
-        ui.postDelayed(new Runnable(){@Override public void run(){if(!alive)return;UiLanguage.apply(getWindow().getDecorView());if(terminal)TerminalTheme.apply(getWindow().getDecorView());ui.postDelayed(this,3000);}},3000);
         content.requestApplyInsets();
         bindActions();
         scheduleBackgroundUpdateCheck();
@@ -175,10 +175,10 @@ public final class MainActivity extends Activity {
             .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN).build(),updateNetworkCallback);
         requestNotificationPermission();
         if (state != null) {
-            String draftTheme = state.getString("draftTheme");
             String draftProfile = state.getString("draftProfile");
-            if (draftTheme != null && draftProfile != null) {
-                try { settingsPage.restoreDraft(draftTheme, ScanProfile.valueOf(draftProfile), state.getBoolean("draftRadio", radioEnabled())); }
+            if (draftProfile != null) {
+                try { settingsPage.restoreDraft(getSharedPreferences("settings",MODE_PRIVATE).getString("theme","dark"), ScanProfile.valueOf(draftProfile), state.getBoolean("draftRadio", radioEnabled()));
+                    settingsPage.restoreLanguage(state.getString("draftLanguage",getSharedPreferences("settings",MODE_PRIVATE).getString("language","en"))); }
                 catch (IllegalArgumentException ignored) { /* Corrupt transient state falls back to persisted settings. */ }
             }
             String restoredTab = state.getString("currentTab", state.getBoolean("settingsOpen", false) ? "settings" : "scan");
@@ -289,6 +289,7 @@ public final class MainActivity extends Activity {
             AndroidAppTraffic.allowed(this), detector404Token, telegramProxies, vpnProfiles, appVersion(),
             updateManager.isConfigured(),
             new SettingsPage.Listener() {
+                @Override public void themeChanged(String theme) { applyTheme(theme); }
                 @Override public void save(String theme, String language, ScanProfile profile, boolean radio, String detectorToken,
                                            List<NamedConfiguration> proxies, List<NamedConfiguration> vpns) {
                     saveSettings(theme, language, profile, radio, detectorToken, proxies, vpns);
@@ -317,9 +318,11 @@ public final class MainActivity extends Activity {
         toolsHome.addView(text("Tools",28,primary,Typeface.BOLD));
         Button controlTool=actionButton("Control  ›",surface,primary);controlTool.setOnClickListener(v->showTool("control"));toolsHome.addView(controlTool,margins(-1,dp(80),0,0,12,0,0));
         Button ipTool=actionButton("IP scanner  ›",surface,primary);ipTool.setOnClickListener(v->showTool("ip"));toolsHome.addView(ipTool,margins(-1,dp(80),0,0,12,0,0));
+        Button traceTool=actionButton("Trace  ›",surface,primary);traceTool.setOnClickListener(v->showTool("trace"));toolsHome.addView(traceTool,margins(-1,dp(80),0,0,12,0,0));
         toolsPage.addView(toolsHome,new FrameLayout.LayoutParams(-1,-1));
         toolsPage.addView(controlPage,new FrameLayout.LayoutParams(-1,-1));
         ipScannerPage=new IpScannerPage(this,dark,()->showTool("home"));ipScannerPage.setVisibility(View.GONE);toolsPage.addView(ipScannerPage,new FrameLayout.LayoutParams(-1,-1));
+        tracePage=new TraceRoutePage(this,dark,()->showTool("home"));tracePage.setVisibility(View.GONE);toolsPage.addView(tracePage,new FrameLayout.LayoutParams(-1,-1));
         installMonitorSettings();
         FrameLayout pages = new FrameLayout(this);
         pages.addView(liveRadioPage, new FrameLayout.LayoutParams(-1,-1));
@@ -367,7 +370,7 @@ public final class MainActivity extends Activity {
     private void showSettingsTab() { selectPage("settings"); settingsPage.updateAvailability(scanning,canRememberBaseline()); }
     private void showRadioTab(){liveRadioPage.showLanding();selectPage("radio");}
     private void showToolsTab(){showTool("home");selectPage("tools");}
-    private void showTool(String tool){toolsHome.setVisibility("home".equals(tool)?View.VISIBLE:View.GONE);controlPage.setVisibility("control".equals(tool)?View.VISIBLE:View.GONE);ipScannerPage.setVisibility("ip".equals(tool)?View.VISIBLE:View.GONE);}
+    private void showTool(String tool){toolsHome.setVisibility("home".equals(tool)?View.VISIBLE:View.GONE);controlPage.setVisibility("control".equals(tool)?View.VISIBLE:View.GONE);ipScannerPage.setVisibility("ip".equals(tool)?View.VISIBLE:View.GONE);tracePage.setVisibility("trace".equals(tool)?View.VISIBLE:View.GONE);}
 
 
     private void styleTab(Button tab, boolean selected) {
@@ -413,6 +416,9 @@ public final class MainActivity extends Activity {
             item.addView(text(timing(sample),18,primary,Typeface.BOLD));
             item.addView(text("IP: "+(sample.resolvedIp == null ? "не получен" : sample.resolvedIp),13,primary,Typeface.NORMAL));
             if (sample.httpCode >= 0) item.addView(text("HTTP: "+sample.httpCode,13,primary,Typeface.NORMAL));
+            if(observed==ProbeResult.Status.UNAVAILABLE&&(sample.tcpMs>=0||sample.pingMs>=0)
+                &&!(sample.httpsMs>=0&&sample.httpCode>=200&&sample.httpCode<400))
+                item.addView(text("Transport answered, but this web endpoint did not return a successful HTTP response.",12,secondary,Typeface.NORMAL));
             if (sample.probeDetail != null && !sample.probeDetail.isBlank()) item.addView(text(sample.probeDetail,13,primary,Typeface.NORMAL));
             if (sample.error != null && !sample.error.isBlank()) item.addView(text(sample.error,12,tone,Typeface.NORMAL));
             categoryPageContent.addView(item,margins(-1,-2,0,0,0,0,9));
@@ -439,7 +445,9 @@ public final class MainActivity extends Activity {
             TextView item = text(label + "\nНедоступно через публичный Android API для обычного приложения",14,secondary,Typeface.NORMAL);
             item.setPadding(0,dp(16),0,dp(12)); content.addView(item);
         }
-        content.addView(text("Для ограничений модема нужны права оператора/системы или поддерживаемый интерфейс производителя. Автоматическое восстановление после закрытия приложения без этих прав невозможно.",13,secondary,Typeface.NORMAL));
+        content.addView(text(UiLanguage.isRussian()
+            ? "Выбор сот и блокировка диапазонов требуют прав оператора/системы или совместимого модуля с root. Эта версия не запрашивает root и не меняет настройки модема. Сам root не гарантирует поддержку на каждом устройстве."
+            : "Cell selection and band locking require carrier/system privileges or a compatible root backend. This version does not request root or change modem settings. Root alone does not guarantee support on every device.",13,secondary,Typeface.NORMAL));
         for (String[] entry : new String[][]{{"Системные настройки Wi-Fi",Settings.ACTION_WIFI_SETTINGS},{"Системные настройки Bluetooth",Settings.ACTION_BLUETOOTH_SETTINGS},{"Системные настройки мобильной сети",Settings.ACTION_NETWORK_OPERATOR_SETTINGS}}) {
             Button button = actionButton(entry[0],surface,primary);
             button.setOnClickListener(v -> { try { startActivity(new Intent(entry[1])); } catch (Exception error) { Toast.makeText(this,UiLanguage.text("Экран недоступен на этом устройстве"),Toast.LENGTH_LONG).show(); } });
@@ -470,13 +478,13 @@ public final class MainActivity extends Activity {
         root.addView(monitoring,2);
         LinearLayout tower=new LinearLayout(this);tower.setOrientation(LinearLayout.VERTICAL);
         tower.addView(text("OpenCellID",18,primary,Typeface.BOLD));
-        tower.addView(text("The map requires your own OpenCellID API key. You can change it here.",12,secondary,Typeface.NORMAL));
+        tower.addView(text("Copy the complete value from OpenCellID → API Access Tokens. Paste only the key, without key= or a URL. A valid key does not guarantee that every cell is in the database.",12,secondary,Typeface.NORMAL));
         Button key=actionButton("Set API key",surface,primary);
         key.setOnClickListener(v->{android.widget.EditText input=new android.widget.EditText(this);input.setSingleLine(true);
             input.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
             input.setText(getSharedPreferences("tower-map",MODE_PRIVATE).getString("key",""));
             new AlertDialog.Builder(this).setTitle("OpenCellID key").setView(input)
-                .setPositiveButton("Save",(dialog,which)->getSharedPreferences("tower-map",MODE_PRIVATE).edit().putString("key",input.getText().toString().trim()).apply())
+                .setPositiveButton("Save",(dialog,which)->{getSharedPreferences("tower-map",MODE_PRIVATE).edit().putString("key",input.getText().toString().trim()).apply();TowerMap.clearCache();})
                 .setNegativeButton("Cancel",null).show();});tower.addView(key);root.addView(tower,3);
     }
 
@@ -648,7 +656,7 @@ public final class MainActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         lastLog = null;
         lastReport = null; availableInRestrictions.setVisibility(View.GONE);
-        scan.setText("Отменить"); radioScan.setEnabled(false); radioScan.setAlpha(.45f); save.setEnabled(false); save.setAlpha(.45f);
+        scan.setText(UiLanguage.text("Отменить")); radioScan.setEnabled(false); radioScan.setAlpha(.45f); save.setEnabled(false); save.setAlpha(.45f);
         settingsPage.updateAvailability(true, false);
         progress.setMax(targets.size() * profile.passes); progress.setProgress(0); progress.setVisibility(terminal?View.GONE:View.VISIBLE);
         checkedCount = available = degraded = unavailable = 0;
@@ -659,10 +667,10 @@ public final class MainActivity extends Activity {
         vpnList.removeAllViews(); vpnList.setVisibility(View.GONE); vpnTitle.setVisibility(View.GONE);
         categoryTiles.removeAllViews(); categoryTiles.setVisibility(View.GONE); categoryTitle.setVisibility(View.GONE);
         diagnosticsList.removeAllViews();
-        overview.setText(profile == ScanProfile.DEEP
+        overview.setText(UiLanguage.text(profile == ScanProfile.DEEP
             ? "Глубокий скан: 2 прохода и до 5 минут. Состояние радио не равно доступности интернета. Cell ID и BSSID в логе могут раскрывать местоположение."
-            : "Быстрый скан: один проход. Медленные запросы ограничены тайм-аутом.");
-        headline.setText(R.string.scan_in_progress);
+            : "Быстрый скан: один проход. Медленные запросы ограничены тайм-аутом."));
+        headline.setText(UiLanguage.text(getString(R.string.scan_in_progress)));
         ui.post(heartbeat);
         setHeroGradient(null);
         activeScan = executor.submit(() -> {
@@ -751,20 +759,20 @@ public final class MainActivity extends Activity {
 
     private void startRadioSnapshot() {
         if (!alive || scanning || radioScanning) return;
-        radioScanning = true; radioScan.setEnabled(false); radioScan.setText("Снимаем…");
+        radioScanning = true; radioScan.setEnabled(false); radioScan.setText(UiLanguage.text("Снимаем…"));
         progress.setIndeterminate(false); progress.setMax(5); progress.setProgress(0); progress.setVisibility(terminal?View.GONE:View.VISIBLE);
-        details.setText("Радиоснимок: подготовка");
+        details.setText(UiLanguage.text("Радиоснимок: подготовка"));
         Toast.makeText(this, UiLanguage.text("Снимаем вышки, Wi‑Fi и Bluetooth…"), Toast.LENGTH_SHORT).show();
         executor.submit(() -> {
             List<NetworkCheckResult> snapshot;
             try { snapshot = new RadioDiagnostics(this, "manual", true, (completed, total, phase) -> ui.post(() -> {
                     if (!alive || !radioScanning) return;
-                    progress.setMax(total); progress.setProgress(completed); details.setText("Радиоснимок: " + phase + "\n" + completed + " из " + total + " этапов");
+                    progress.setMax(total); progress.setProgress(completed); details.setText(UiLanguage.text("Радиоснимок: " + phase + "\n" + completed + " из " + total + " этапов"));
                 })).collect(); }
             catch (Exception | LinkageError error) { CrashDiagnostics.record("Радиоснимок", error); snapshot = new ArrayList<>(); }
             List<NetworkCheckResult> result = snapshot;
             ui.post(() -> {
-                radioScanning = false; radioScan.setEnabled(true); radioScan.setText("Радио"); progress.setVisibility(View.GONE);
+                radioScanning = false; radioScan.setEnabled(true); radioScan.setText(UiLanguage.text("Радио")); progress.setVisibility(View.GONE);
                 if (!alive) return;
                 showNetworkChecks(result);
                 Toast.makeText(this, UiLanguage.text("Радиоснимок готов: ") + result.size() + UiLanguage.text(" наблюдений"), Toast.LENGTH_LONG).show();
@@ -794,7 +802,7 @@ public final class MainActivity extends Activity {
     private void resetScanControls() {
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         scanning = false; ui.removeCallbacks(heartbeat);
-        scan.setEnabled(true); scan.setText("Начать скан"); scan.setAlpha(1f);
+        scan.setEnabled(true); scan.setText(UiLanguage.text("Начать скан")); scan.setAlpha(1f);
         radioScan.setEnabled(true); radioScan.setAlpha(1f);
         settingsPage.updateAvailability(false, canRememberBaseline());
         progress.setVisibility(View.GONE);
@@ -805,8 +813,8 @@ public final class MainActivity extends Activity {
         scanGeneration++;
         if (activeScan != null) activeScan.cancel(true);
         resetScanControls();
-        headline.setText("Сканирование отменено");
-        details.setText("Получено ответов: " + checkedCount + ". Можно начать повторную проверку.");
+        headline.setText(UiLanguage.text("Сканирование отменено"));
+        details.setText(UiLanguage.text("Получено ответов: " + checkedCount + ". Можно начать повторную проверку."));
         CrashDiagnostics.phase("Отменено пользователем");
     }
 
@@ -814,9 +822,9 @@ public final class MainActivity extends Activity {
         scanGeneration++;
         if (activeScan != null) activeScan.cancel(true);
         resetScanControls();
-        headline.setText(lastLog == null ? "Проверка не завершена" : "Отчёт сохранён");
-        details.setText("Ошибка: " + error.getClass().getSimpleName() + ". Настройки → Журнал ошибок.");
-        if (lastLog != null) overview.setText("Не удалось показать часть аналитики. JSON-лог можно сохранить кнопкой.");
+        headline.setText(UiLanguage.text(lastLog == null ? "Проверка не завершена" : "Отчёт сохранён"));
+        details.setText(UiLanguage.text("Ошибка: " + error.getClass().getSimpleName() + ". Настройки → Журнал ошибок."));
+        if (lastLog != null) overview.setText(UiLanguage.text("Не удалось показать часть аналитики. JSON-лог можно сохранить кнопкой."));
     }
 
     private void showProbe(ProbeResult result) {
@@ -855,10 +863,10 @@ public final class MainActivity extends Activity {
 
     private void finishScan(ScanReport report, String summary) {
         lastReport = report;
-        headline.setText(levelName(report.level));
-        details.setText("Работают " + available + " из " + report.results.size() + "  •  " + report.networkOrigin);
+        headline.setText(UiLanguage.text(levelName(report.level)));
+        details.setText(UiLanguage.text("Работают " + available + " из " + report.results.size() + "  •  " + report.networkOrigin));
         setHeroGradient(report.level);
-        overview.setText(summary);
+        overview.setText(UiLanguage.text(summary));
         if (report.assessment.state == NetworkAssessment.State.RED) {
             availableInRestrictions.setText(UiLanguage.text("Доступны при текущих ограничениях\n\n" + ReportAnalytics.availableServicesText(report)));
             availableInRestrictions.setVisibility(View.VISIBLE);
@@ -871,7 +879,7 @@ public final class MainActivity extends Activity {
         for (String item : report.recommendations) value.append("•  ").append(item).append("\n\n");
         if (!report.newlyUnavailable.isEmpty()) value.append("Стали недоступны: ").append(String.join(", ", report.newlyUnavailable)).append('\n');
         if (!report.recovered.isEmpty()) value.append("Снова доступны: ").append(String.join(", ", report.recovered)).append('\n');
-        recommendations.setText(value.toString().trim()); recommendations.setVisibility(View.GONE);
+        recommendations.setText(UiLanguage.text(value.toString().trim())); recommendations.setVisibility(View.GONE);
         recommendationsTitle.setVisibility(View.VISIBLE);
         resetScanControls();
         CrashDiagnostics.phase("Сканирование завершено");
@@ -971,7 +979,7 @@ public final class MainActivity extends Activity {
                 StringBuilder values = new StringBuilder();
                 for (Map.Entry<String, String> metric : check.metrics.entrySet())
                     values.append(metric.getKey()).append(": ").append(metric.getValue()).append('\n');
-                details.setText(values.toString().trim()); details.setVisibility(View.VISIBLE);
+                details.setText(UiLanguage.text(values.toString().trim())); details.setVisibility(View.VISIBLE);
             }
         });
         return row;
@@ -1131,6 +1139,7 @@ public final class MainActivity extends Activity {
     @Override public void onBackPressed() {
         if (returnFromProbeDetails != null) { leaveProbeDetails(); return; }
         if (categoryPage != null && categoryPage.getVisibility() == View.VISIBLE) { showScanTab(); return; }
+        if ("radio".equals(currentTab) && liveRadioPage.onBack()) return;
         if ("tools".equals(currentTab) && toolsHome.getVisibility()!=View.VISIBLE){showTool("home");return;}
         if (!"scan".equals(currentTab)) { showScanTab(); return; }
         super.onBackPressed();
@@ -1236,7 +1245,7 @@ public final class MainActivity extends Activity {
         boolean oldDark = dark,oldTerminal=terminal;
         boolean languageChanged=UiLanguage.isRussian()!="ru".equals(language);
         getSharedPreferences("settings", MODE_PRIVATE).edit().putString("theme", theme)
-            .putString("language",language).putString("profile", profile == ScanProfile.DEEP ? "deep" : "quick").putBoolean("radio", radio).apply();
+            .putString("language",language).putString("profile", profile == ScanProfile.DEEP ? "deep" : "quick").putBoolean("radio", radio).commit();
         detector404Token = detectorToken;
         telegramProxies = new ArrayList<>(proxies); vpnProfiles = new ArrayList<>(vpns);
         terminal=TerminalTheme.enabled(this);dark = isDark();
@@ -1244,9 +1253,9 @@ public final class MainActivity extends Activity {
         if(languageChanged){recreate();return;}
         if (oldDark != dark || oldTerminal != terminal) rebuildForTheme();
         else {
-            if (lastReport == null) details.setText(profile == ScanProfile.DEEP
+            if (lastReport == null) details.setText(UiLanguage.text(profile == ScanProfile.DEEP
                 ? "Проверка DNS / TCP / HTTPS"
-                : "Быстрый скан: один проход с ограниченными тайм-аутами.");
+                : "Быстрый скан: один проход с ограниченными тайм-аутами."));
             settingsPage.showSaved(); settingsPage.updateAvailability(false, canRememberBaseline());
         }
     }
@@ -1387,11 +1396,13 @@ public final class MainActivity extends Activity {
     }
 
     private void rebuildForTheme() {
+        String draftLanguage=settingsPage==null?null:settingsPage.selectedLanguage();
         setPalette();
         applySystemBars();
         ScanReport report = lastReport;
         byte[] log = lastLog; String name = lastName;
-        View content = buildUi(); setContentView(content); UiLanguage.apply(content);if(terminal)TerminalTheme.apply(content); content.requestApplyInsets(); bindActions();
+        View content = buildUi(); UiLanguage.apply(content);if(terminal)TerminalTheme.apply(content); setContentView(content); content.requestApplyInsets(); bindActions();
+        if(draftLanguage!=null)settingsPage.restoreLanguage(draftLanguage);
         lastReport = report; lastLog = log; lastName = name;
         if (report != null) {
             currentResults.clear(); available = degraded = unavailable = completedRequests = 0;
@@ -1520,6 +1531,14 @@ public final class MainActivity extends Activity {
         return drawable;
     }
 
+    private void applyTheme(String theme) {
+        if(scanning)return;
+        if(!getSharedPreferences("settings",MODE_PRIVATE).edit().putString("theme",theme).commit())return;
+        terminal=TerminalTheme.enabled(this);dark=isDark();
+        setTheme(dark ? android.R.style.Theme_Material_NoActionBar : android.R.style.Theme_Material_Light_NoActionBar);
+        rebuildForTheme();
+    }
+
     private void setPalette() {
         background=terminal?TerminalTheme.BACKGROUND:dark?Color.rgb(8,10,16):Color.rgb(240,244,251);
         surface=terminal?TerminalTheme.SURFACE:dark?Color.rgb(22,25,34):Color.WHITE;
@@ -1535,11 +1554,12 @@ public final class MainActivity extends Activity {
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
     private static String timing(ProbeResult result) {
-        String ping = result.pingMs < 0 ? "Ping —" : "Ping " + result.pingMs + " мс";
+        String unit=UiLanguage.isRussian()?" мс":" ms";
+        String ping = result.pingMs < 0 ? "Ping —" : "Ping " + result.pingMs + unit;
         if (result.target.probeKind == ru.lighthouse.core.ServiceTarget.ProbeKind.DNS)
-            return ping + "  •  DNS " + (result.tcpMs < 0 ? "—" : result.tcpMs + " мс");
-        long value = result.httpsMs >= 0 ? result.httpsMs : result.tcpMs;
-        return ping + "  •  " + (value < 0 ? "нет ответа" : value + " мс");
+            return ping + "  •  DNS " + (result.tcpMs < 0 ? "—" : result.tcpMs + unit);
+        return ping + "  •  HTTPS " + (result.httpsMs < 0 ? "—" : result.httpsMs + unit)
+            + "  •  TCP " + (result.tcpMs < 0 ? "—" : result.tcpMs + unit);
     }
     private static String shortStatus(ProbeResult.Status status) {
         return status == ProbeResult.Status.AVAILABLE ? "Работает"
@@ -1557,9 +1577,9 @@ public final class MainActivity extends Activity {
         state.putBoolean("settingsOpen", "settings".equals(currentTab));
         state.putString("currentTab", currentTab);
         if (settingsPage != null) {
-            state.putString("draftTheme", settingsPage.selectedTheme());
             state.putString("draftProfile", settingsPage.selectedProfile().name());
             state.putBoolean("draftRadio", settingsPage.selectedRadio());
+            state.putString("draftLanguage", settingsPage.selectedLanguage());
         }
         super.onSaveInstanceState(state);
     }
